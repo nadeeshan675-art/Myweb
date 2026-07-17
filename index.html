@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMS Sri Lanka - Full Auto Backup & Sync</title>
+    <title>BMS Sri Lanka - Premium Sync Pro</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome for Icons -->
@@ -20,12 +20,16 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f9;
-            padding-bottom: 60px; /* For bottom navigation */
+            padding-bottom: 75px; 
         }
 
         .btn-modern {
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .btn-modern:hover {
+            transform: translateY(-2px);
         }
 
         .bottom-nav {
@@ -33,12 +37,12 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 60px;
+            height: 65px;
             background-color: #ffffff;
             display: flex;
             justify-content: space-around;
             align-items: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 -3px 15px rgba(0,0,0,0.08);
             z-index: 1030;
         }
 
@@ -73,7 +77,6 @@
 
         .cursor-pointer { cursor: pointer; }
 
-        /* Mini Sync Toast */
         #sync-toast {
             position: fixed;
             top: 70px;
@@ -86,13 +89,29 @@
             border-radius: 20px;
             font-size: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
+        }
+
+        .order-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background: white;
+        }
+        .form-select-custom, .form-input-custom {
+            border-radius: 10px;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+        }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Mini Sync Status Toast -->
     <div id="sync-toast">
         <i class="fa-solid fa-rotate fa-spin me-2"></i> <span id="sync-toast-text">Syncing...</span>
     </div>
@@ -103,14 +122,13 @@
             <div class="text-center mb-4">
                 <i class="fa-solid fa-file-invoice-dollar fa-3x text-primary mb-2"></i>
                 <h3 class="fw-bold">BMS Sri Lanka</h3>
-                <p class="text-muted">ලයිව් ඔටෝ බැකප් පද්ධතිය (Live Auto-Sync)</p>
+                <p class="text-muted">ලයිව් ඔටෝ බැකප් පද්ධතිය</p>
                 <div class="btn-group w-100 mb-3" role="group">
                     <button type="button" class="btn btn-outline-primary active" id="btn-login-tab">Log In</button>
                     <button type="button" class="btn btn-outline-primary" id="btn-register-tab">Register Admin</button>
                 </div>
             </div>
 
-            <!-- Login Form -->
             <form id="login-form">
                 <div class="mb-3">
                     <label class="form-label">Company Code / ආයතන කේතය</label>
@@ -124,29 +142,27 @@
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Username / පරිශීලක නාමය</label>
+                    <label class="form-label">Username</label>
                     <input type="text" id="login-username" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Password / මුරපදය</label>
-                    <div class="input-group">
-                        <input type="password" id="login-password" class="form-control" required>
-                        <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('login-password', this)">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-                    </div>
+                    <label class="form-label">Password</label>
+                    <input type="password" id="login-password" class="form-control" required>
                 </div>
                 <button type="submit" id="btn-login-submit" class="btn btn-primary w-100 py-2 btn-modern">Log In & Sync Data</button>
             </form>
 
-            <!-- Register Form -->
             <form id="register-form" class="d-none">
                 <div class="mb-3">
                     <label class="form-label">Company Name / ආයතනයේ නම</label>
                     <input type="text" id="reg-company-name" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Admin Name / පරිපාලකගේ නම</label>
+                    <label class="form-label">Company Address / ලිපිනය</label>
+                    <input type="text" id="reg-company-address" class="form-control" required placeholder="No 12, Colombo">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Admin Name</label>
                     <input type="text" id="reg-admin-name" class="form-control" required>
                 </div>
                 <div class="mb-3">
@@ -155,12 +171,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Choose Password</label>
-                    <div class="input-group">
-                        <input type="password" id="reg-password" class="form-control" required>
-                        <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('reg-password', this)">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-                    </div>
+                    <input type="password" id="reg-password" class="form-control" required>
                 </div>
                 <button type="submit" id="btn-reg-submit" class="btn btn-success w-100 py-2 btn-modern">Register & Save</button>
             </form>
@@ -170,22 +181,15 @@
     <!-- ================= MAIN APP SYSTEM ================= -->
     <div id="app-section" class="d-none">
         
-        <!-- Top Header -->
         <header class="navbar navbar-expand navbar-dark bg-primary sticky-top px-3 shadow">
             <span class="navbar-brand fw-bold" id="brand-name">BMS App</span>
             <div class="ms-auto d-flex align-items-center gap-2">
-                <!-- Sync Status Indicator -->
-                <span class="text-white small me-2" id="live-indicator">
-                    <i class="fa-solid fa-circle-dot text-success animate-ping me-1"></i> Live Auto-Syncing
-                </span>
-                
                 <div class="dropdown text-white">
-                    <i class="fa-solid fa-bell position-relative fs-5 cursor-pointer" data-bs-toggle="dropdown">
+                    <i class="fa-solid fa-bell position-relative fs-5 cursor-pointer" data-bs-toggle="dropdown" onclick="clearNotificationBadge()">
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="noti-count" style="font-size: 10px;">0</span>
                     </i>
                     <ul class="dropdown-menu dropdown-menu-end shadow" id="noti-list" style="width: 280px; max-height: 300px; overflow-y: auto;">
                         <li><h6 class="dropdown-header">Notifications</h6></li>
-                        <li><hr class="dropdown-divider"></li>
                     </ul>
                 </div>
                 <span class="text-white small d-none d-md-inline" id="user-display">Code: --</span>
@@ -193,7 +197,6 @@
             </div>
         </header>
 
-        <!-- Main Content -->
         <main class="container py-4 mb-5 pb-5">
             
             <!-- Dashboard View -->
@@ -201,38 +204,34 @@
                 <div class="row g-2 mb-3">
                     <div class="col-6 col-md-3">
                         <div class="card p-2 shadow-sm border-0 bg-gradient-primary text-white">
-                            <small style="font-size: 11px;">Total Sales / මුළු විකුණුම්</small>
+                            <small style="font-size: 11px;">Total Sales</small>
                             <h5 class="fw-bold mt-1" id="dash-sales" style="font-size: 15px;">Rs. 0.00</h5>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="card p-2 shadow-sm border-0 bg-gradient-success text-white">
-                            <small style="font-size: 11px;">Net Profit / ලාභය</small>
+                            <small style="font-size: 11px;">Net Profit</small>
                             <h5 class="fw-bold mt-1" id="dash-profit" style="font-size: 15px;">Rs. 0.00</h5>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="card p-2 shadow-sm border-0 bg-gradient-warning text-dark">
-                            <small style="font-size: 11px;">Active Orders / ඇණවුම්</small>
+                            <small style="font-size: 11px;">Active Orders</small>
                             <h5 class="fw-bold mt-1" id="dash-orders" style="font-size: 15px;">0</h5>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="card p-2 shadow-sm border-0 bg-gradient-danger text-white">
-                            <small style="font-size: 11px;">Outstanding / හිඟ මුදල්</small>
+                            <small style="font-size: 11px;">Outstanding Balance</small>
                             <h5 class="fw-bold mt-1" id="dash-outstanding" style="font-size: 15px;">Rs. 0.00</h5>
                         </div>
                     </div>
                 </div>
 
-                <!-- INFO: GOOGLE CLOUD AUTO-SYNC STATUS -->
-                <div class="card p-3 shadow-sm border-0 mb-3 border-start border-success border-4">
-                    <h6 class="fw-bold text-success mb-1"><i class="fa-solid fa-cloud-bolt me-2"></i>Full Cloud Auto Backup is ON</h6>
-                    <p class="text-muted small mb-0" style="font-size: 11px;">සියලුම දත්ත **සෑම තත්පර 15කට වරක්ම** පසුබිමෙන් ස්වයංක්‍රීයව යාවත්කාලීන වේ (Auto-Sync). Phone එකෙන් ඇතුළත් කරන දේ ටැබ් එකටත්, ටැබ් එකෙන් කරන දේ Phone එකටත් Auto-Backup වේ.</p>
-                </div>
+                <div id="dashboard-overdue-alerts" class="mb-3"></div>
 
                 <div class="card p-3 shadow-sm border-0 mb-3">
-                    <h6 class="fw-bold mb-2"><i class="fa-solid fa-chart-line text-primary me-2"></i>Recent Activity</h6>
+                    <h6 class="fw-bold mb-2"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Recent Orders Status</h6>
                     <div class="table-responsive">
                         <table class="table table-sm" style="font-size: 12px;">
                             <thead>
@@ -245,7 +244,6 @@
                             <tbody id="dash-sales-table"></tbody>
                         </table>
                     </div>
-                    <div id="dash-alerts" class="text-danger small mt-2" style="font-size: 11px;"></div>
                 </div>
             </div>
 
@@ -253,7 +251,7 @@
             <div id="view-customers" class="app-view d-none">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold">Customers / ගනුදෙනුකරුවන්</h5>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-customer"><i class="fa-solid fa-plus"></i> Add</button>
+                    <button class="btn btn-primary btn-sm admin-only" data-bs-toggle="modal" data-bs-target="#modal-customer"><i class="fa-solid fa-plus"></i> Add Customer</button>
                 </div>
                 <div class="card p-2 border-0 shadow-sm">
                     <div class="table-responsive">
@@ -262,8 +260,9 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Phone</th>
-                                    <th>Outstanding</th>
-                                    <th>Action</th>
+                                    <th>Allowed Term</th>
+                                    <th>Outstanding Status</th>
+                                    <th class="admin-only">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="table-customers"></tbody>
@@ -276,7 +275,7 @@
             <div id="view-items" class="app-view d-none">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold">Inventory / තොග</h5>
-                    <button class="btn btn-primary btn-sm admin-only" data-bs-toggle="modal" data-bs-target="#modal-item"><i class="fa-solid fa-plus"></i> Add</button>
+                    <button class="btn btn-primary btn-sm admin-only" data-bs-toggle="modal" data-bs-target="#modal-item"><i class="fa-solid fa-plus"></i> Add Item</button>
                 </div>
                 <div class="card p-2 border-0 shadow-sm">
                     <div class="table-responsive">
@@ -284,7 +283,8 @@
                             <thead>
                                 <tr>
                                     <th>Item</th>
-                                    <th>Selling</th>
+                                    <th>Cost Price</th>
+                                    <th>Selling Price</th>
                                     <th>Stock</th>
                                     <th class="admin-only">Action</th>
                                 </tr>
@@ -297,24 +297,114 @@
 
             <!-- Orders View -->
             <div id="view-orders" class="app-view d-none">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold">Orders / ඇණවුම්</h5>
-                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-order"><i class="fa-solid fa-cart-plus"></i> Order</button>
-                </div>
-                <div class="card p-2 border-0 shadow-sm">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle" style="font-size: 13px;">
-                            <thead>
-                                <tr>
-                                    <th>Order #</th>
-                                    <th>Customer</th>
-                                    <th>Total</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-orders"></tbody>
-                        </table>
+                <div class="row g-4">
+                    <div class="col-12 col-lg-5">
+                        <div class="card order-card p-4">
+                            <h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-cart-plus me-2"></i>New Live Bill Sheet</h5>
+                            
+                            <form id="form-order-modern">
+                                <!-- Search & Select Customer -->
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">1. Select/Search Customer</label>
+                                    <input type="text" id="search-customer-input" class="form-control form-input-custom mb-1" placeholder="Type name to search customer..." oninput="filterCustomerDropdown()">
+                                    <select id="order-customer" class="form-select form-select-custom" required onchange="showCustomerCreditBadge()">
+                                        <option value="">-- Choose Customer --</option>
+                                    </select>
+                                    <div id="customer-credit-info" class="mt-2"></div>
+                                </div>
+
+                                <hr>
+
+                                <!-- Add Items To Cart Sub-Form -->
+                                <div class="p-3 bg-light rounded-3 mb-3">
+                                    <label class="form-label small fw-semibold">2. Add Item to This Bill</label>
+                                    <input type="text" id="search-item-input" class="form-control form-input-custom mb-1" placeholder="Type code/name to search item..." oninput="filterItemDropdown()">
+                                    <select id="order-item" class="form-select form-select-custom mb-2" onchange="updateLiveUnitDisplay()">
+                                        <option value="">-- Choose Item --</option>
+                                    </select>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label small">Qty</label>
+                                            <input type="number" id="order-qty" class="form-control" value="1" min="1">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small">Price (LKR)</label>
+                                            <input type="number" id="order-unit-price" class="form-control" readonly value="0">
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2 fw-bold" onclick="addItemToCart()"><i class="fa-solid fa-plus-circle"></i> Add To Sheet</button>
+                                </div>
+
+                                <!-- Cart Table Items display -->
+                                <div class="mb-3">
+                                    <label class="small fw-bold text-muted">Items List on current bill (එකතු කල බඩු ලිස්ට් එක):</label>
+                                    <div class="table-responsive bg-white border rounded p-1" style="max-height: 150px;">
+                                        <table class="table table-sm style-13 mb-0" style="font-size:12px;">
+                                            <thead><tr><th>Item</th><th>Qty</th><th>Subtotal</th><th></th></tr></thead>
+                                            <tbody id="cart-items-body"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Payment Method</label>
+                                    <select id="order-payment" class="form-select form-select-custom" required>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Card">Card</option>
+                                        <option value="Credit">Credit (ණයට)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Admin Only Discount Section -->
+                                <div class="mb-3 admin-only">
+                                    <label class="form-label small fw-bold text-success">Discount Amount (Admin Only)</label>
+                                    <input type="number" id="order-discount" class="form-control" value="0" min="0" oninput="renderCartTable()">
+                                </div>
+
+                                <div class="p-3 bg-dark text-white rounded-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center small opacity-75">
+                                        <span>Gross Total:</span>
+                                        <span id="order-gross-total">Rs. 0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center small opacity-75 admin-only text-success">
+                                        <span>Discount Given:</span>
+                                        <span id="order-discount-total">Rs. 0.00</span>
+                                    </div>
+                                    <hr class="my-1 border-secondary">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold">Net Payable:</span>
+                                        <span id="order-live-total" class="fs-4 fw-bold text-warning">Rs. 0.00</span>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn-success w-100 py-2.5 btn-modern" onclick="submitCompleteOrder()">
+                                    <i class="fa-solid fa-cloud-arrow-up me-2"></i>
+                                    <span id="submit-btn-text">Save & Send for Approval</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Live Orders Log List -->
+                    <div class="col-12 col-lg-7">
+                        <div class="card order-card p-4">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-clock-rotate-left me-2"></i>Order Registry Log</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle" style="font-size: 12px;">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Order #</th>
+                                            <th>Customer</th>
+                                            <th>Net Total</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-orders"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -322,8 +412,8 @@
             <!-- Employees View -->
             <div id="view-employees" class="app-view d-none admin-only">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold">Staff / Sēvaka Kaḷamanākaraṇaya</h5>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-employee"><i class="fa-solid fa-user-plus"></i> Staff</button>
+                    <h5 class="fw-bold">Staff Management</h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-employee"><i class="fa-solid fa-user-plus"></i> Add Staff</button>
                 </div>
                 <div class="card p-2 border-0 shadow-sm">
                     <div class="table-responsive">
@@ -340,24 +430,6 @@
                         </table>
                     </div>
                 </div>
-            </div>
-
-            <!-- Reports View -->
-            <div id="view-reports" class="app-view d-none admin-only">
-                <h5 class="fw-bold mb-3">Reports / Vārthā</h5>
-                <div class="card p-3 border-0 shadow-sm mb-3">
-                    <h6>Metrics</h6>
-                    <table class="table table-sm mt-2" style="font-size: 13px;">
-                        <tbody>
-                            <tr><td>Stock Cost Value:</td><td id="rep-inv-cost">Rs. 0.00</td></tr>
-                            <tr><td>Stock Return Value:</td><td id="rep-inv-sell">Rs. 0.00</td></tr>
-                            <tr><td>Cleared Orders:</td><td id="rep-total-orders">0</td></tr>
-                            <tr><td>Outstanding:</td><td id="rep-outstanding">Rs. 0.00</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <button class="btn btn-outline-danger w-100 mb-2" onclick="downloadSalesReport()"><i class="fa-solid fa-file-csv me-2"></i>Download Sales (CSV)</button>
-                <button class="btn btn-outline-success w-100" onclick="downloadInventoryReport()"><i class="fa-solid fa-file-csv me-2"></i>Download Inventory (CSV)</button>
             </div>
 
         </main>
@@ -379,24 +451,22 @@
             <button class="nav-item admin-only" onclick="switchView('employees')">
                 <i class="fa-solid fa-user-gear"></i><span>Staff</span>
             </button>
-            <button class="nav-item admin-only" onclick="switchView('reports')">
-                <i class="fa-solid fa-file-waveform"></i><span>Reports</span>
-            </button>
         </nav>
     </div>
 
-    <!-- Modals (Popups) -->
+    <!-- Modals -->
     <div class="modal fade" id="modal-customer" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="form-customer" class="modal-content">
-                <div class="modal-header"><h5>Add Customer</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header"><h5>Add New Customer</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
                     <div class="mb-2"><label class="form-label small">Full Name</label><input type="text" id="cust-name" class="form-control" required></div>
                     <div class="mb-2"><label class="form-label small">Phone</label><input type="text" id="cust-phone" class="form-control" required></div>
                     <div class="mb-2"><label class="form-label small">Address</label><input type="text" id="cust-address" class="form-control" required></div>
-                    <div class="mb-2"><label class="form-label small">Outstanding Balance (LKR)</label><input type="number" id="cust-balance" class="form-control" value="0"></div>
+                    <div class="mb-2"><label class="form-label small">Outstanding Starting Balance (LKR)</label><input type="number" id="cust-balance" class="form-control" value="0"></div>
+                    <div class="mb-2"><label class="form-label small fw-bold text-primary">Allowed Credit Period (Days)</label><input type="number" id="cust-credit-period" class="form-control" value="30" required></div>
                 </div>
-                <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm">Save</button></div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm">Save Customer</button></div>
             </form>
         </div>
     </div>
@@ -421,27 +491,6 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modal-order" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <form id="form-order" class="modal-content">
-                <div class="modal-header"><h5>New Sales Order</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body">
-                    <div class="mb-2"><label class="form-label small">Select Customer</label><select id="order-customer" class="form-select" required></select></div>
-                    <div class="mb-2"><label class="form-label small">Select Product</label><select id="order-item" class="form-select" required></select></div>
-                    <div class="mb-2"><label class="form-label small">Quantity</label><input type="number" id="order-qty" class="form-control" min="1" value="1" required></div>
-                    <div class="mb-2"><label class="form-label small">Payment</label>
-                        <select id="order-payment" class="form-select" required>
-                            <option value="Cash">Cash</option>
-                            <option value="Card">Card</option>
-                            <option value="Credit">Credit</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer"><button type="submit" class="btn btn-success btn-sm">Submit</button></div>
-            </form>
-        </div>
-    </div>
-
     <div class="modal fade" id="modal-employee" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="form-employee" class="modal-content">
@@ -449,49 +498,40 @@
                 <div class="modal-body">
                     <div class="mb-2"><label class="form-label small">Name</label><input type="text" id="emp-name" class="form-control" required></div>
                     <div class="mb-2"><label class="form-label small">Username</label><input type="text" id="emp-username" class="form-control" required></div>
-                    <div class="mb-2"><label class="form-label small">Password</label>
-                        <div class="input-group">
-                            <input type="password" id="emp-password" class="form-control" required>
-                            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="togglePasswordVisibility('emp-password', this)"><i class="fa-solid fa-eye"></i></button>
-                        </div>
-                    </div>
+                    <div class="mb-2"><label class="form-label small">Password</label><input type="password" id="emp-password" class="form-control" required></div>
                 </div>
-                <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm">Save</button></div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm">Save Employee</button></div>
             </form>
         </div>
     </div>
 
-    <!-- Bootstrap & App Script Logic -->
+    <!-- Hidden Invoice Print Area -->
+    <div id="print-area" class="d-none p-4" style="background:#fff; color:#000;"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ================= CLOUD API CONFIGURATION =================
         const CLOUD_API_URL = "https://script.google.com/macros/s/AKfycbw1BDQ5YWBP8eXM8RvazHg7ATLsfGCAYIUMPbV31vqdbmulLFq-Sob_FKMnDyvOcYmU/exec"; 
 
-        // LocalStorage Setup
         if (!localStorage.getItem('bms_companies')) localStorage.setItem('bms_companies', JSON.stringify([]));
         if (!localStorage.getItem('bms_users')) localStorage.setItem('bms_users', JSON.stringify([]));
         if (!localStorage.getItem('bms_customers')) localStorage.setItem('bms_customers', JSON.stringify([]));
         if (!localStorage.getItem('bms_items')) localStorage.setItem('bms_items', JSON.stringify([]));
         if (!localStorage.getItem('bms_orders')) localStorage.setItem('bms_orders', JSON.stringify([]));
         if (!localStorage.getItem('bms_notifications')) localStorage.setItem('bms_notifications', JSON.stringify([]));
+        if (!localStorage.getItem('bms_unread_count')) localStorage.setItem('bms_unread_count', '0');
 
         let activeUser = JSON.parse(sessionStorage.getItem('bms_active_user')) || null; 
         let autoSyncInterval = null; 
+        let currentCart = []; 
 
-        // ================= AUTO SYNC LOGIC =================
         function showSyncStatus(statusText) {
             const toast = document.getElementById('sync-toast');
             const txt = document.getElementById('sync-toast-text');
-            if (statusText) {
-                txt.innerHTML = statusText;
-                toast.style.display = 'block';
-            } else {
-                toast.style.display = 'none';
-            }
+            if (statusText) { txt.innerHTML = statusText; toast.style.display = 'block'; } else { toast.style.display = 'none'; }
         }
 
         async function autoSaveToCloud() {
-            showSyncStatus("<i class='fa-solid fa-cloud-arrow-up fa-bounce me-2'></i> Cloud Backup in progress...");
+            showSyncStatus("<i class='fa-solid fa-cloud-arrow-up fa-bounce me-2'></i> Cloud Backup...");
             const dbData = {
                 companies: JSON.parse(localStorage.getItem('bms_companies')),
                 users: JSON.parse(localStorage.getItem('bms_users')),
@@ -500,547 +540,577 @@
                 orders: JSON.parse(localStorage.getItem('bms_orders')),
                 notifications: JSON.parse(localStorage.getItem('bms_notifications'))
             };
-
             try {
-                await fetch(CLOUD_API_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(dbData)
-                });
-                showSyncStatus("<i class='fa-solid fa-cloud-check text-success me-2'></i> ☁️ Cloud Synced!");
+                await fetch(CLOUD_API_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dbData) });
+                showSyncStatus("<i class='fa-solid fa-cloud-check text-success me-2'></i> Synced!");
                 setTimeout(() => showSyncStatus(null), 1500);
-            } catch (error) {
-                showSyncStatus("❌ Sync Failed!");
-                setTimeout(() => showSyncStatus(null), 3000);
-            }
+            } catch (e) { showSyncStatus("❌ Sync Failed!"); setTimeout(() => showSyncStatus(null), 3000); }
         }
 
         async function downloadFromCloud(isInitial = false) {
-            if (!isInitial) {
-                showSyncStatus("<i class='fa-solid fa-rotate fa-spin me-2'></i> Live Updating...");
-            }
+            if (!isInitial) showSyncStatus("<i class='fa-solid fa-rotate fa-spin me-2'></i> Syncing...");
             try {
                 const response = await fetch(CLOUD_API_URL);
                 const cloudData = await response.json();
-                
                 if (cloudData && cloudData.users) {
                     localStorage.setItem('bms_companies', JSON.stringify(cloudData.companies || []));
                     localStorage.setItem('bms_users', JSON.stringify(cloudData.users || []));
                     localStorage.setItem('bms_customers', JSON.stringify(cloudData.customers || []));
                     localStorage.setItem('bms_items', JSON.stringify(cloudData.items || []));
                     localStorage.setItem('bms_orders', JSON.stringify(cloudData.orders || []));
-                    localStorage.setItem('bms_notifications', JSON.stringify(cloudData.notifications || []));
-                    
-                    if (!isInitial) {
-                        loadAllData();
-                        showSyncStatus("<i class='fa-solid fa-circle-check text-success me-2'></i> All Data Updated Live!");
-                        setTimeout(() => showSyncStatus(null), 1500);
+                    const oldNotis = JSON.parse(localStorage.getItem('bms_notifications')) || [];
+                    const newNotis = cloudData.notifications || [];
+                    if(newNotis.length > oldNotis.length) {
+                        let unread = parseInt(localStorage.getItem('bms_unread_count')) || 0;
+                        localStorage.setItem('bms_unread_count', (unread + (newNotis.length - oldNotis.length)).toString());
                     }
+                    localStorage.setItem('bms_notifications', JSON.stringify(newNotis));
+                    if (!isInitial) { loadAllData(); checkOverdueCreditPeriods(); showSyncStatus(null); }
                 }
-            } catch (error) {
-                console.error("Auto Load Failed");
-                if (!isInitial) showSyncStatus(null);
-            }
+            } catch (e) { if (!isInitial) showSyncStatus(null); }
         }
 
         function startLiveUpdateLoop() {
             if (autoSyncInterval) clearInterval(autoSyncInterval);
-            autoSyncInterval = setInterval(async () => {
-                if (activeUser) {
-                    await downloadFromCloud(false);
-                }
-            }, 15000); 
+            autoSyncInterval = setInterval(async () => { if (activeUser) await downloadFromCloud(false); }, 15000); 
         }
 
-        function stopLiveUpdateLoop() {
-            if (autoSyncInterval) {
-                clearInterval(autoSyncInterval);
-                autoSyncInterval = null;
-            }
-        }
+        function clearNotificationBadge() { localStorage.setItem('bms_unread_count', '0'); document.getElementById('noti-count').textContent = '0'; }
 
-        // ================= AUTH/NAV LOGIC =================
-        function togglePasswordVisibility(id, btn) {
-            const input = document.getElementById(id);
-            const icon = btn.querySelector('i');
-            if (input.type === "password") {
-                input.type = "text";
-                icon.className = "fa-solid fa-eye-slash";
-            } else {
-                input.type = "password";
-                icon.className = "fa-solid fa-eye";
-            }
-        }
-
-        document.getElementById('btn-login-tab')?.addEventListener('click', () => {
-            document.getElementById('btn-login-tab').classList.add('active');
-            document.getElementById('btn-register-tab').classList.remove('active');
-            document.getElementById('login-form').classList.remove('d-none');
-            document.getElementById('register-form').classList.add('d-none');
-        });
-
-        document.getElementById('btn-register-tab')?.addEventListener('click', () => {
-            document.getElementById('btn-login-tab').classList.remove('active');
-            document.getElementById('btn-register-tab').classList.add('active');
-            document.getElementById('login-form').classList.add('d-none');
-            document.getElementById('register-form').classList.remove('d-none');
-        });
-
-        document.getElementById('register-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btnSubmit = document.getElementById('btn-reg-submit');
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i> Registering...";
-
-            // Register වීමට පෙර Cloud එකේ අලුත්ම දත්ත Download කරගන්නවා (Username Double වෙනවාද බලන්න)
-            await downloadFromCloud(true);
-
-            const companyName = document.getElementById('reg-company-name').value.trim();
-            const adminName = document.getElementById('reg-admin-name').value.trim();
-            const username = document.getElementById('reg-username').value.trim().toLowerCase();
-            const password = document.getElementById('reg-password').value;
-
-            let users = JSON.parse(localStorage.getItem('bms_users'));
-            if (users.find(u => u.username === username)) { 
-                alert("Username already exists!"); 
-                btnSubmit.disabled = false;
-                btnSubmit.innerText = "Register & Save";
-                return; 
-            }
-
-            const companyCode = 'CO-' + Math.floor(1000 + Math.random() * 9000);
-            const userCode = 'USR-' + Math.floor(10000 + Math.random() * 90000);
-
-            const companies = JSON.parse(localStorage.getItem('bms_companies'));
-            companies.push({ companyCode, companyName });
-            localStorage.setItem('bms_companies', JSON.stringify(companies));
-
-            users.push({ userCode, companyCode, name: adminName, username, password: btoa(password), role: 'Admin' });
-            localStorage.setItem('bms_users', JSON.stringify(users));
-
-            // Cloud එකට Save කරනවා
-            await autoSaveToCloud();
-            
-            alert(`Admin Registered Successfully!\n\nYOUR COMPANY CODE: ${companyCode}\n\nමෙම Code එක අනිත් Phone වලටත් දී ලොග් වෙන්න.`);
-            
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "Register & Save";
-
-            document.getElementById('btn-login-tab').click();
-            document.getElementById('login-company-code').value = companyCode;
-        });
-
-        // ✨ ඕනෑම ෆෝන් එකකින් ලොග් වෙන්න පුළුවන් වන ලොජික් එක
-        document.getElementById('login-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btnSubmit = document.getElementById('btn-login-submit');
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = "<i class='fa-solid fa-circle-notch fa-spin me-2'></i> Cloud Connecting...";
-
-            // 🌟 වැදගත්ම දේ: වෙනත් ෆෝන් එකකින් ලොග් වෙද්දී මුලින්ම Cloud එකේ තියෙන අලුත්ම Accounts ඩවුන්ලෝඩ් කරනවා!
-            await downloadFromCloud(true);
-
-            const companyCode = document.getElementById('login-company-code').value.trim();
-            const role = document.getElementById('login-role').value;
-            const username = document.getElementById('login-username').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value;
-
-            const hashedPassword = btoa(password);
-            const users = JSON.parse(localStorage.getItem('bms_users'));
-            
-            // දැන් අලුතින් ඩවුන්ලෝඩ් වුණු දත්ත එක්ක මැච් කරලා බලනවා
-            const user = users.find(u => u.username === username && u.companyCode === companyCode && u.role === role && u.password === hashedPassword);
-
-            if (user) {
-                activeUser = user;
-                sessionStorage.setItem('bms_active_user', JSON.stringify(user)); 
-
-                document.getElementById('auth-section').classList.add('d-none');
-                document.getElementById('app-section').classList.remove('d-none');
-                document.getElementById('brand-name').textContent = "BMS - " + companyCode;
-                document.getElementById('user-display').textContent = `${user.name} (${user.role})`;
-                
-                applyRoleRestrictions();
-                loadAllData();
-                switchView('dashboard');
-                startLiveUpdateLoop();
-            } else {
-                alert("Login failed! දත්ත වැරදියි හෝ ඔබ තවම Cloud එකට සම්බන්ධ වී නැත.");
-            }
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "Log In & Sync Data";
-        });
-
-        document.getElementById('btn-logout')?.addEventListener('click', () => {
-            activeUser = null;
-            sessionStorage.removeItem('bms_active_user');
-            sessionStorage.removeItem('bms_current_view');
-            stopLiveUpdateLoop();
-            document.getElementById('auth-section').classList.remove('d-none');
-            document.getElementById('app-section').classList.add('d-none');
-        });
-
-        function applyRoleRestrictions() {
-            const adminElements = document.querySelectorAll('.admin-only');
-            if (activeUser.role !== 'Admin') {
-                adminElements.forEach(el => el.classList.add('d-none'));
-            } else {
-                adminElements.forEach(el => el.classList.remove('d-none'));
-            }
-        }
-
-        function switchView(viewName) {
-            document.querySelectorAll('.app-view').forEach(view => view.classList.add('d-none'));
-            document.getElementById('view-' + viewName).classList.remove('d-none');
-            
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = Array.from(document.querySelectorAll('.nav-item')).find(btn => btn.getAttribute('onclick').includes(viewName));
-            if(activeBtn) activeBtn.classList.add('active');
-
-            sessionStorage.setItem('bms_current_view', viewName);
-        }
-
-        function loadAllData() {
-            loadCustomers();
-            loadItems();
-            loadOrders();
-            loadEmployees();
-            renderNotifications();
-            updateDashboardMetrics();
-        }
-
-        // ================= BUSINESS LOGIC =================
-        function updateDashboardMetrics() {
-            const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
-            const items = JSON.parse(localStorage.getItem('bms_items')).filter(i => i.companyCode === activeUser.companyCode);
-            const customers = JSON.parse(localStorage.getItem('bms_customers')).filter(c => c.companyCode === activeUser.companyCode);
-
-            const approvedOrders = orders.filter(o => o.status === 'Approved');
-            const totalSales = approvedOrders.reduce((sum, o) => sum + o.total, 0);
-
-            let netProfit = 0;
-            approvedOrders.forEach(ord => {
-                const matchingItem = items.find(i => i.code === ord.itemCode);
-                if (matchingItem) {
-                    netProfit += ((ord.unitPrice - matchingItem.cost) * ord.qty);
-                }
-            });
-
-            const outstanding = customers.reduce((sum, c) => sum + Number(c.balance), 0);
-
-            document.getElementById('dash-sales').textContent = 'Rs. ' + totalSales.toFixed(2);
-            document.getElementById('dash-profit').textContent = 'Rs. ' + netProfit.toFixed(2);
-            document.getElementById('dash-orders').textContent = orders.length;
-            document.getElementById('dash-outstanding').textContent = 'Rs. ' + outstanding.toFixed(2);
-
-            const tblDash = document.getElementById('dash-sales-table');
-            tblDash.innerHTML = '';
-            orders.slice(-5).reverse().forEach(o => {
-                tblDash.innerHTML += `<tr><td>${o.orderNo}</td><td>Rs. ${o.total.toFixed(2)}</td><td><span class="badge bg-${o.status === 'Approved' ? 'success' : o.status === 'Pending' ? 'warning' : 'danger'}">${o.status}</span></td></tr>`;
-            });
-
-            const alertsDiv = document.getElementById('dash-alerts');
-            alertsDiv.innerHTML = '';
-            items.forEach(i => {
-                if (i.qty <= i.lowStock) {
-                    alertsDiv.innerHTML += `<div>⚠️ Low Stock: <b>${i.name}</b> (${i.qty} left)</div>`;
-                }
-            });
-
-            if (activeUser.role === 'Admin') {
-                document.getElementById('rep-inv-cost').textContent = 'Rs. ' + items.reduce((sum, i) => sum + (i.cost * i.qty), 0).toFixed(2);
-                document.getElementById('rep-inv-sell').textContent = 'Rs. ' + items.reduce((sum, i) => sum + (i.sell * i.qty), 0).toFixed(2);
-                document.getElementById('rep-total-orders').textContent = approvedOrders.length;
-                document.getElementById('rep-outstanding').textContent = 'Rs. ' + outstanding.toFixed(2);
-            }
-        }
-
-        // Customers
-        function loadCustomers() {
-            const customers = JSON.parse(localStorage.getItem('bms_customers')).filter(c => c.companyCode === activeUser.companyCode);
-            const tableBody = document.getElementById('table-customers');
-            const orderCustomerSelect = document.getElementById('order-customer');
-            tableBody.innerHTML = '';
-            orderCustomerSelect.innerHTML = '<option value="">-- Customer --</option>';
-
-            customers.forEach(c => {
-                tableBody.innerHTML += `<tr><td><b>${c.name}</b></td><td>${c.phone}</td><td class="text-danger fw-bold">Rs. ${Number(c.balance).toFixed(2)}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer('${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
-                orderCustomerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-            });
-        }
-
-        document.getElementById('form-customer')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = 'CST-' + Date.now();
-            const name = document.getElementById('cust-name').value;
-            const phone = document.getElementById('cust-phone').value;
-            const address = document.getElementById('cust-address').value;
-            const balance = document.getElementById('cust-balance').value || 0;
-
-            const customers = JSON.parse(localStorage.getItem('bms_customers'));
-            customers.push({ id, companyCode: activeUser.companyCode, name, phone, address, balance });
-            localStorage.setItem('bms_customers', JSON.stringify(customers));
-
-            bootstrap.Modal.getInstance(document.getElementById('modal-customer')).hide();
-            document.getElementById('form-customer').reset();
-            loadCustomers();
-            updateDashboardMetrics();
-            await autoSaveToCloud();
-        });
-
-        async function deleteCustomer(id) {
-            if (confirm("Remove Customer?")) {
-                let customers = JSON.parse(localStorage.getItem('bms_customers'));
-                customers = customers.filter(c => c.id !== id);
-                localStorage.setItem('bms_customers', JSON.stringify(customers));
-                loadCustomers();
-                updateDashboardMetrics();
-                await autoSaveToCloud();
-            }
-        }
-
-        // Items Inventory
-        function loadItems() {
-            const items = JSON.parse(localStorage.getItem('bms_items')).filter(i => i.companyCode === activeUser.companyCode);
-            const tableBody = document.getElementById('table-items');
-            const orderItemSelect = document.getElementById('order-item');
-            tableBody.innerHTML = '';
-            orderItemSelect.innerHTML = '<option value="">-- Item --</option>';
-
-            items.forEach(i => {
-                const isLow = i.qty <= i.lowStock;
-                tableBody.innerHTML += `<tr><td><b>${i.name}</b><br><small class="text-muted">${i.code}</small></td><td>Rs. ${Number(i.sell).toFixed(2)}</td><td><span class="badge bg-${isLow ? 'danger' : 'success'}">${i.qty}</span></td><td class="admin-only"><button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${i.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
-                orderItemSelect.innerHTML += `<option value="${i.code}">${i.name} (Rs. ${i.sell})</option>`;
-            });
-        }
-
-        document.getElementById('form-item')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = 'ITM-' + Date.now();
-            const name = document.getElementById('item-name').value;
-            const cost = parseFloat(document.getElementById('item-cost').value);
-            const sell = parseFloat(document.getElementById('item-sell').value);
-            const qty = parseInt(document.getElementById('item-qty').value);
-            const lowStock = parseInt(document.getElementById('item-low').value);
-            const code = 'SKU-' + Math.floor(1000 + Math.random() * 9000);
-
-            const items = JSON.parse(localStorage.getItem('bms_items'));
-            items.push({ id, code, companyCode: activeUser.companyCode, name, cost, sell, qty, lowStock });
-            localStorage.setItem('bms_items', JSON.stringify(items));
-
-            bootstrap.Modal.getInstance(document.getElementById('modal-item')).hide();
-            document.getElementById('form-item').reset();
-            loadItems();
-            updateDashboardMetrics();
-            await autoSaveToCloud();
-        });
-
-        async function deleteItem(id) {
-            if (confirm("Delete Item?")) {
-                let items = JSON.parse(localStorage.getItem('bms_items'));
-                items = items.filter(i => i.id !== id);
-                localStorage.setItem('bms_items', JSON.stringify(items));
-                loadItems();
-                updateDashboardMetrics();
-                await autoSaveToCloud();
-            }
-        }
-
-        // Orders
-        function loadOrders() {
-            const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
-            const tableBody = document.getElementById('table-orders');
-            tableBody.innerHTML = '';
-
-            orders.forEach(o => {
-                let actions = '';
-                if (o.status === 'Pending') {
-                    if (activeUser.role === 'Admin') {
-                        actions = `<button class="btn btn-xs btn-success py-0 px-1" onclick="approveOrder('${o.id}')">Approve</button>`;
-                    } else {
-                        actions = `<span class="text-muted small">Pending</span>`;
-                    }
-                } else {
-                    actions = `<span class="text-muted small">Done</span>`;
-                }
-
-                tableBody.innerHTML += `<tr><td><b>${o.orderNo}</b></td><td>${o.custName}</td><td>Rs. ${o.total.toFixed(0)}</td><td><span class="badge bg-${o.status === 'Approved' ? 'success' : o.status === 'Pending' ? 'warning' : 'danger'}">${o.status}</span></td><td>${actions}</td></tr>`;
-            });
-        }
-
-        document.getElementById('form-order')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const custId = document.getElementById('order-customer').value;
-            const itemCode = document.getElementById('order-item').value;
-            const qty = parseInt(document.getElementById('order-qty').value);
-            const payment = document.getElementById('order-payment').value;
-
-            const customers = JSON.parse(localStorage.getItem('bms_customers'));
-            const items = JSON.parse(localStorage.getItem('bms_items'));
-
-            const customer = customers.find(c => c.id === custId);
-            const item = items.find(i => i.code === itemCode);
-
-            if (item.qty < qty) { alert("Insufficient Stock!"); return; }
-
-            const orderNo = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
-            const orders = JSON.parse(localStorage.getItem('bms_orders'));
-            orders.push({ 
-                id: 'ORD-' + Date.now(), 
-                orderNo, 
-                companyCode: activeUser.companyCode, 
-                custId, 
-                custName: customer.name, 
-                itemCode, 
-                itemName: item.name,
-                qty, 
-                unitPrice: item.sell, 
-                total: (item.sell * qty), 
-                empName: activeUser.name, 
-                payment, 
-                status: 'Pending',
-                date: new Date().toLocaleDateString()
-            });
-            localStorage.setItem('bms_orders', JSON.stringify(orders));
-
-            bootstrap.Modal.getInstance(document.getElementById('modal-order')).hide();
-            document.getElementById('form-order').reset();
-            pushNotification("New order placed! Pending review.", "info");
-            loadOrders();
-            updateDashboardMetrics();
-            await autoSaveToCloud();
-        });
-
-        async function approveOrder(orderId) {
-            const orders = JSON.parse(localStorage.getItem('bms_orders'));
-            const order = orders.find(o => o.id === orderId);
-            const items = JSON.parse(localStorage.getItem('bms_items'));
-            const item = items.find(i => i.code === order.itemCode);
-
-            if (item && item.qty >= order.qty) {
-                item.qty -= order.qty;
-                order.status = 'Approved';
-
-                if (order.payment === 'Credit') {
-                    const customers = JSON.parse(localStorage.getItem('bms_customers'));
-                    const customer = customers.find(c => c.id === order.custId);
-                    if (customer) customer.balance = Number(customer.balance) + order.total;
-                    localStorage.setItem('bms_customers', JSON.stringify(customers));
-                }
-
-                localStorage.setItem('bms_items', JSON.stringify(items));
-                localStorage.setItem('bms_orders', JSON.stringify(orders));
-                pushNotification(`Order ${order.orderNo} Approved!`, "success");
-                loadAllData();
-                await autoSaveToCloud();
-            } else {
-                alert("Stock insufficient!");
-            }
-        }
-
-        // Employees
-        function loadEmployees() {
-            if (activeUser.role !== 'Admin') return;
-            const users = JSON.parse(localStorage.getItem('bms_users')).filter(u => u.companyCode === activeUser.companyCode);
-            const tableBody = document.getElementById('table-employees');
-            tableBody.innerHTML = '';
-
-            users.forEach(u => {
-                tableBody.innerHTML += `<tr><td><b>${u.name}</b></td><td>${u.username}</td><td><span class="badge bg-dark">${u.role}</span></td><td>${u.role !== 'Admin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee('${u.userCode}')"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`;
-            });
-        }
-
-        document.getElementById('form-employee')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('emp-name').value;
-            const username = document.getElementById('emp-username').value.trim().toLowerCase();
-            const password = document.getElementById('emp-password').value;
-
-            const users = JSON.parse(localStorage.getItem('bms_users'));
-            if (users.find(u => u.username === username)) { alert("Username taken!"); return; }
-
-            users.push({ userCode: 'EMP-' + Math.floor(10000 + Math.random() * 90000), companyCode: activeUser.companyCode, name, username, password: btoa(password), role: 'Employee' });
-            localStorage.setItem('bms_users', JSON.stringify(users));
-            bootstrap.Modal.getInstance(document.getElementById('modal-employee')).hide();
-            document.getElementById('form-employee').reset();
-            loadEmployees();
-            await autoSaveToCloud();
-        });
-
-        async function deleteEmployee(code) {
-            if (confirm("Delete Account?")) {
-                let users = JSON.parse(localStorage.getItem('bms_users'));
-                users = users.filter(u => u.userCode !== code);
-                localStorage.setItem('bms_users', JSON.stringify(users));
-                loadEmployees();
-                await autoSaveToCloud();
-            }
-        }
-
-        // Alerts / Notifications
         function pushNotification(message, type) {
             const notis = JSON.parse(localStorage.getItem('bms_notifications'));
             notis.push({ id: Date.now(), companyCode: activeUser.companyCode, message, type, time: new Date().toLocaleTimeString() });
             localStorage.setItem('bms_notifications', JSON.stringify(notis));
+            let unread = parseInt(localStorage.getItem('bms_unread_count')) || 0;
+            localStorage.setItem('bms_unread_count', (unread + 1).toString());
             renderNotifications();
         }
 
         function renderNotifications() {
             const notis = JSON.parse(localStorage.getItem('bms_notifications')).filter(n => n.companyCode === activeUser.companyCode);
-            document.getElementById('noti-count').textContent = notis.length;
+            document.getElementById('noti-count').textContent = localStorage.getItem('bms_unread_count') || '0';
             const list = document.getElementById('noti-list');
             list.innerHTML = '<li><h6 class="dropdown-header">Notifications</h6></li><li><hr class="dropdown-divider"></li>';
             if (notis.length === 0) list.innerHTML += `<li class="p-2 text-center text-muted small">No Alerts!</li>`;
-            else {
-                notis.slice(-5).reverse().forEach(n => {
-                    list.innerHTML += `<li class="p-2 border-bottom"><span class="text-${n.type} small d-block"><b>${n.message}</b></span></li>`;
-                });
+            else { notis.slice(-6).reverse().forEach(n => { list.innerHTML += `<li class="p-2 border-bottom small"><i class="fa-solid fa-circle text-${n.type} me-1" style="font-size:7px"></i> <b>${n.message}</b></li>`; }); }
+        }
+
+        function filterCustomerDropdown() {
+            const q = document.getElementById('search-customer-input').value.toLowerCase();
+            const customers = JSON.parse(localStorage.getItem('bms_customers')).filter(c => c.companyCode === activeUser.companyCode);
+            const select = document.getElementById('order-customer');
+            select.innerHTML = '<option value="">-- Choose Customer --</option>';
+            customers.forEach(c => {
+                if (c.name.toLowerCase().includes(q)) select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+        }
+
+        function filterItemDropdown() {
+            const q = document.getElementById('search-item-input').value.toLowerCase();
+            const items = JSON.parse(localStorage.getItem('bms_items')).filter(i => i.companyCode === activeUser.companyCode);
+            const select = document.getElementById('order-item');
+            select.innerHTML = '<option value="">-- Choose Item --</option>';
+            items.forEach(i => {
+                if (i.name.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)) select.innerHTML += `<option value="${i.code}">${i.name} (Rs. ${i.sell})</option>`;
+            });
+        }
+
+        function updateLiveUnitDisplay() {
+            const itemCode = document.getElementById('order-item').value;
+            if(!itemCode) { document.getElementById('order-unit-price').value = 0; return; }
+            const items = JSON.parse(localStorage.getItem('bms_items')).filter(i => i.companyCode === activeUser.companyCode);
+            const selectedItem = items.find(i => i.code === itemCode);
+            document.getElementById('order-unit-price').value = selectedItem ? selectedItem.sell : 0;
+        }
+
+        function showCustomerCreditBadge() {
+            const custId = document.getElementById('order-customer').value;
+            const customers = JSON.parse(localStorage.getItem('bms_customers')).filter(c => c.companyCode === activeUser.companyCode);
+            const customer = customers.find(c => c.id === custId);
+            const infoDiv = document.getElementById('customer-credit-info');
+            if (customer) {
+                infoDiv.innerHTML = `<span class="badge bg-light text-dark border p-2 w-100 text-start"><i class="fa-solid fa-clock text-primary me-2"></i>Credit Allowed: <b>${customer.creditPeriod || 30} Days</b></span>`;
+            } else { infoDiv.innerHTML = ''; }
+        }
+
+        function checkOverdueCreditPeriods() {
+            const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode && o.payment === 'Credit' && o.status === 'Approved');
+            const customers = JSON.parse(localStorage.getItem('bms_customers')).filter(c => c.companyCode === activeUser.companyCode);
+            const alertPanel = document.getElementById('dashboard-overdue-alerts');
+            if(!alertPanel) return;
+            alertPanel.innerHTML = '';
+
+            let hasOverdueAlert = false;
+            orders.forEach(o => {
+                const customer = customers.find(c => c.id === o.custId);
+                if(customer && Number(customer.balance) > 0) {
+                    const allowedDays = customer.creditPeriod || 30;
+                    const orderDate = new Date(o.date);
+                    const today = new Date();
+                    const diffTime = Math.abs(today - orderDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const remaining = allowedDays - diffDays;
+
+                    if (remaining <= 0) {
+                        hasOverdueAlert = true;
+                        alertPanel.innerHTML += `
+                            <div class="alert alert-danger p-2 small mb-1 border-0 shadow-sm d-flex justify-content-between align-items-center">
+                                <span><i class="fa-solid fa-triangle-exclamation fa-flash me-2"></i><b>${o.custName}</b> has OVERDUE payment for Order ${o.orderNo}! (Passed by ${Math.abs(remaining)} days)</span>
+                            </div>`;
+                    }
+                }
+            });
+            if (hasOverdueAlert && activeUser.role === 'Admin') {
+                pushNotification("Warning: Outstanding accounts are Overdue!", "danger");
             }
         }
 
-        // CSV Reports
-        function downloadSalesReport() {
-            const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
-            if(orders.length === 0) { alert("No data!"); return; }
-            let csv = "data:text/csv;charset=utf-8,Order No,Customer,Total,Status\n";
-            orders.forEach(o => csv += `${o.orderNo},${o.custName},${o.total},${o.status}\n`);
-            triggerDownload(csv, "Sales_Report.csv");
-        }
+        function addItemToCart() {
+            const itemCode = document.getElementById('order-item').value;
+            const qty = parseInt(document.getElementById('order-qty').value) || 0;
+            if(!itemCode || qty <= 0) { alert("Please select an item and quantity!"); return; }
 
-        function downloadInventoryReport() {
             const items = JSON.parse(localStorage.getItem('bms_items')).filter(i => i.companyCode === activeUser.companyCode);
-            if(items.length === 0) { alert("No data!"); return; }
-            let csv = "data:text/csv;charset=utf-8,Code,Name,Cost,Selling,Qty\n";
-            items.forEach(i => csv += `${i.code},${i.name},${i.cost},${i.sell},${i.qty}\n`);
-            triggerDownload(csv, "Inventory_Report.csv");
+            const selectedItem = items.find(i => i.code === itemCode);
+            if(!selectedItem || selectedItem.qty < qty) { alert("Inventory Stock insufficient!"); return; }
+
+            const existing = currentCart.find(c => c.code === itemCode);
+            if(existing) {
+                existing.qty += qty;
+                existing.subtotal = existing.qty * existing.price;
+            } else {
+                currentCart.push({ code: itemCode, name: selectedItem.name, qty: qty, price: selectedItem.sell, subtotal: (selectedItem.sell * qty) });
+            }
+            renderCartTable();
         }
 
-        function triggerDownload(content, fileName) {
-            const encodedUri = encodeURI(content);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", fileName);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function removeCartItem(index) { currentCart.splice(index, 1); renderCartTable(); }
+
+        function renderCartTable() {
+            const body = document.getElementById('cart-items-body');
+            body.innerHTML = '';
+            let grossTotal = 0;
+            currentCart.forEach((c, idx) => {
+                grossTotal += c.subtotal;
+                body.innerHTML += `<tr><td>${c.name}</td><td>${c.qty}</td><td>Rs. ${c.subtotal.toFixed(2)}</td><td><i class="fa-solid fa-trash text-danger cursor-pointer" onclick="removeCartItem(${idx})"></i></td></tr>`;
+            });
+
+            let discount = 0;
+            if(activeUser && activeUser.role === 'Admin') {
+                discount = parseFloat(document.getElementById('order-discount').value) || 0;
+            }
+            let netTotal = grossTotal - discount;
+            if(netTotal < 0) netTotal = 0;
+
+            document.getElementById('order-gross-total').textContent = 'Rs. ' + grossTotal.toFixed(2);
+            document.getElementById('order-discount-total').textContent = 'Rs. ' + discount.toFixed(2);
+            document.getElementById('order-live-total').textContent = 'Rs. ' + netTotal.toFixed(2);
         }
 
-        // Auto Load on page refresh
+        async function submitCompleteOrder() {
+            const custId = document.getElementById('order-customer').value;
+            const payment = document.getElementById('order-payment').value;
+            if(!custId || currentCart.length === 0) { alert("Please select a customer and add items to the cart first!"); return; }
+
+            const customers = JSON.parse(localStorage.getItem('bms_customers'));
+            const customer = customers.find(c => c.id === custId);
+            
+            let grossTotal = currentCart.reduce((sum, c) => sum + c.subtotal, 0);
+            let discount = (activeUser.role === 'Admin') ? (parseFloat(document.getElementById('order-discount').value) || 0) : 0;
+            let netTotal = Math.max(0, grossTotal - discount);
+
+            const orderNo = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+            const orders = JSON.parse(localStorage.getItem('bms_orders'));
+            
+            orders.push({
+                id: 'ORD-' + Date.now(),
+                orderNo: orderNo,
+                companyCode: activeUser.companyCode,
+                custId: custId,
+                custName: customer.name,
+                cartItems: [...currentCart],
+                grossTotal: grossTotal,
+                discount: discount,
+                total: netTotal, 
+                empName: activeUser.name,
+                payment: payment,
+                status: 'Pending', 
+                date: new Date().toLocaleDateString()
+            });
+            localStorage.setItem('bms_orders', JSON.stringify(orders));
+
+            currentCart = [];
+            renderCartTable();
+            document.getElementById('form-order-modern').reset();
+            document.getElementById('search-customer-input').value = '';
+            document.getElementById('search-item-input').value = '';
+            filterCustomerDropdown();
+            filterItemDropdown();
+
+            pushNotification(`New Pending Order ${orderNo} sent for approval by ${activeUser.name}`, "warning");
+            loadOrders();
+            updateDashboardMetrics();
+            await autoSaveToCloud();
+            alert("Order saved completely and sent to Admin Approval list!");
+        }
+
+        // ================= DETAILED INVOICE GENERATOR PRINT =================
+        function printInvoiceReceipt(orderId) {
+            const orders = JSON.parse(localStorage.getItem('bms_orders'));
+            const o = orders.find(x => x.id === orderId);
+            if(!o) return;
+            
+            const companies = JSON.parse(localStorage.getItem('bms_companies'));
+            const comp = companies.find(c => c.companyCode === activeUser.companyCode) || { companyName: "BMS Company", companyAddress: "Sri Lanka" };
+
+            let totalQty = 0;
+            if (o.cartItems) {
+                o.cartItems.forEach(i => { totalQty += Number(i.qty); });
+            }
+
+            let overallDiscount = Number(o.discount) || 0;
+            let discountPerItemUnit = totalQty > 0 ? (overallDiscount / totalQty) : 0;
+
+            let itemsRows = '';
+            if(o.cartItems) {
+                o.cartItems.forEach(i => { 
+                    let originalUnitSellPrice = Number(i.price);
+                    let finalUnitSellPrice = Math.max(0, originalUnitSellPrice - discountPerItemUnit);
+                    let computedRowSubtotal = finalUnitSellPrice * Number(i.qty);
+
+                    itemsRows += `
+                        <tr style="border-bottom: 1px dashed #eee;">
+                            <td style="padding: 5px 0;"><b>${i.name}</b></td>
+                            <td style="text-align: center;">${i.qty}</td>
+                            <td style="text-align: right;">${originalUnitSellPrice.toFixed(2)}</td>
+                            <td style="text-align: right; color: red;">-${discountPerItemUnit.toFixed(2)}</td>
+                            <td style="text-align: right; font-weight: bold;">${finalUnitSellPrice.toFixed(2)}</td>
+                            <td style="text-align: right; font-weight: bold;">${computedRowSubtotal.toFixed(2)}</td>
+                        </tr>`; 
+                });
+            }
+
+            const area = document.getElementById('print-area');
+            area.innerHTML = `
+                <div style="font-family: 'Courier New', monospace; padding: 25px; border: 2px solid #000; max-width: 650px; margin: auto; background: #fff;">
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <h2 style="margin: 0; text-transform: uppercase; font-weight: bold; letter-spacing:1px;">${comp.companyName}</h2>
+                        <p style="margin: 4px 0; font-size: 13px;">${comp.companyAddress}</p>
+                    </div>
+                    <hr style="border-top: 2px dashed #000; margin: 10px 0;">
+                    
+                    <table style="width: 100%; font-size: 13px; line-height: 1.6; margin-bottom: 15px;">
+                        <tr><td><b>Invoice No :</b> ${o.orderNo}</td><td style="text-align: right;"><b>Date :</b> ${o.date}</td></tr>
+                        <tr><td><b>Customer   :</b> ${o.custName}</td><td style="text-align: right;"><b>Type :</b> ${o.payment}</td></tr>
+                        <tr><td colspan="2"><b>Operator   :</b> ${o.empName}</td></tr>
+                    </table>
+                    
+                    <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+                    
+                    <table style="width: 100%; font-size: 12px; border-collapse: collapse;" cellpadding="4">
+                        <thead>
+                            <tr style="border-bottom: 2px dashed #000; font-weight: bold; background: #f8f9fa;">
+                                <th style="text-align: left; padding: 5px 0;">Item Descr.</th>
+                                <th style="text-align: center;">Qty</th>
+                                <th style="text-align: right;">Orig. Price</th>
+                                <th style="text-align: right;">Disc. /Item</th>
+                                <th style="text-align: right;">Final Price</th>
+                                <th style="text-align: right;">Total (Rs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsRows}
+                        </tbody>
+                    </table>
+                    
+                    <hr style="border-top: 2px dashed #000; margin: 15px 0;">
+                    
+                    <div style="width: 100%; display: flex; justify-content: flex-end;">
+                        <table style="width: 340px; font-size: 13px; line-height: 1.8;">
+                            <tr>
+                                <td>Gross Total (ඩිස්කවුන්ට් නැතුව එකතුව):</td>
+                                <td style="text-align: right; font-weight: bold;">Rs. ${(o.grossTotal || o.total).toFixed(2)}</td>
+                            </tr>
+                            <tr style="color: red;">
+                                <td>Total Discount (ලබා දුන් ඩිස්කවුන්ට්):</td>
+                                <td style="text-align: right; font-weight: bold;">- Rs. ${overallDiscount.toFixed(2)}</td>
+                            </tr>
+                            <tr style="border-top: 1px solid #000; font-size: 15px;">
+                                <td><b>Net Total (ඩිස්කවුන්ට් දාලා එකතුව):</b></td>
+                                <td style="text-align: right; font-weight: bold; border-bottom: 4px double #000; padding-top: 5px;">Rs. ${o.total.toFixed(2)}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div style="text-align: center; font-size: 12px; margin-top: 30px; letter-spacing: 0.5px;">
+                        Thank You For Business With Us!<br>
+                        <small style="color: #555;">BMS Live Cloud Synchronized System Receipt</small>
+                    </div>
+                </div>
+            `;
+            window.print();
+        }
+
+        async function approveOrder(orderId) {
+            const orders = JSON.parse(localStorage.getItem('bms_orders'));
+            const order = orders.find(o => o.id === orderId);
+            const items = JSON.parse(localStorage.getItem('bms_items'));
+            if(!order) return;
+
+            let stockValid = true;
+            if(order.cartItems) {
+                order.cartItems.forEach(cartItem => {
+                    const match = items.find(i => i.code === cartItem.code);
+                    if(!match || match.qty < cartItem.qty) stockValid = false;
+                });
+            }
+
+            if (stockValid) {
+                if(order.cartItems) {
+                    order.cartItems.forEach(cartItem => {
+                        const match = items.find(i => i.code === cartItem.code);
+                        if(match) match.qty -= cartItem.qty;
+                    });
+                }
+                order.status = 'Approved';
+
+                if (order.payment === 'Credit') {
+                    const customers = JSON.parse(localStorage.getItem('bms_customers'));
+                    const customer = customers.find(c => c.id === order.custId);
+                    if (customer) { customer.balance = Number(customer.balance) + order.total; }
+                    localStorage.setItem('bms_customers', JSON.stringify(customers));
+                }
+
+                localStorage.setItem('bms_items', JSON.stringify(items));
+                localStorage.setItem('bms_orders', JSON.stringify(orders));
+                pushNotification(`Order ${order.orderNo} approved by Admin!`, "success");
+                loadAllData();
+                checkOverdueCreditPeriods();
+                await autoSaveToCloud();
+            } else { alert("Insufficient item stock to approve this bill!"); }
+        }
+
+        // ================= REMOVE & DELETE HANDLERS (BUG FIXES) =================
+        async function deleteCustomer(id) {
+            if(!confirm("Are you sure you want to delete this customer?")) return;
+            let customers = JSON.parse(localStorage.getItem('bms_customers'));
+            customers = customers.filter(c => c.id !== id);
+            localStorage.setItem('bms_customers', JSON.stringify(customers));
+            loadCustomers();
+            updateDashboardMetrics();
+            await autoSaveToCloud();
+        }
+
+        async function deleteItem(id) {
+            if(!confirm("Are you sure you want to delete this item?")) return;
+            let items = JSON.parse(localStorage.getItem('bms_items'));
+            items = items.filter(i => i.id !== id);
+            localStorage.setItem('bms_items', JSON.stringify(items));
+            loadItems();
+            await autoSaveToCloud();
+        }
+
+        async function deleteEmployee(userCode) {
+            if(!confirm("Are you sure you want to remove this staff member?")) return;
+            let users = JSON.parse(localStorage.getItem('bms_users'));
+            users = users.filter(u => u.userCode !== userCode);
+            localStorage.setItem('bms_users', JSON.stringify(users));
+            loadEmployees();
+            await autoSaveToCloud();
+        }
+
+        function loadCustomers() {
+            const customers = JSON.parse(localStorage.getItem('bms_customers')).filter(c => c.companyCode === activeUser.companyCode);
+            const tableBody = document.getElementById('table-customers');
+            if(!tableBody) return;
+            tableBody.innerHTML = '';
+            customers.forEach(c => {
+                tableBody.innerHTML += `<tr><td><b>${c.name}</b></td><td>${c.phone}</td><td><span class="badge bg-secondary">${c.creditPeriod || 30} Days</span></td><td class="text-danger fw-bold">Rs. ${Number(c.balance).toFixed(2)}</td><td class="admin-only"><button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer('${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+            filterCustomerDropdown();
+            applyRoleRestrictions();
+        }
+
+        function loadItems() {
+            const items = JSON.parse(localStorage.getItem('bms_items')).filter(i => i.companyCode === activeUser.companyCode);
+            const tableBody = document.getElementById('table-items');
+            if(!tableBody) return;
+            tableBody.innerHTML = '';
+            items.forEach(i => {
+                tableBody.innerHTML += `<tr><td><b>${i.name}</b><br><small class="text-muted">${i.code}</small></td><td>Rs. ${Number(i.cost).toFixed(2)}</td><td>Rs. ${Number(i.sell).toFixed(2)}</td><td><span class="badge bg-success">${i.qty}</span></td><td class="admin-only"><button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${i.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+            filterItemDropdown();
+            applyRoleRestrictions();
+        }
+
+        function loadOrders() {
+            const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
+            const tableBody = document.getElementById('table-orders');
+            if(!tableBody) return;
+            tableBody.innerHTML = '';
+            orders.forEach(o => {
+                let act = '';
+                if (o.status === 'Pending') {
+                    act = activeUser.role === 'Admin' ? `<button class="btn btn-sm btn-success p-1 rounded btn-modern" onclick="approveOrder('${o.id}')">Approve</button>` : '<span class="text-muted">Awaiting Admin</span>';
+                } else {
+                    act = `<button class="btn btn-sm btn-outline-dark p-1 rounded" onclick="printInvoiceReceipt('${o.id}')"><i class="fa-solid fa-print"></i> Print</button>`;
+                }
+                tableBody.innerHTML += `<tr><td><b>${o.orderNo}</b><br><small class="text-muted">By: ${o.empName}</small></td><td>${o.custName}</td><td>Rs. ${o.total.toFixed(2)}</td><td>${o.payment}</td><td><span class="badge bg-${o.status==='Approved'?'success':'warning'}">${o.status}</span></td><td>${act}</td></tr>`;
+            });
+        }
+
+        function updateDashboardMetrics() {
+            const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
+            const customers = JSON.parse(localStorage.getItem('bms_customers')).filter(c => c.companyCode === activeUser.companyCode);
+            const approved = orders.filter(o => o.status === 'Approved');
+            
+            const salesEl = document.getElementById('dash-sales');
+            const ordersEl = document.getElementById('dash-orders');
+            const outstandingEl = document.getElementById('dash-outstanding');
+            
+            if(salesEl) salesEl.textContent = 'Rs. ' + approved.reduce((sum, o) => sum + o.total, 0).toFixed(2);
+            if(ordersEl) ordersEl.textContent = orders.length;
+            if(outstandingEl) outstandingEl.textContent = 'Rs. ' + customers.reduce((sum, c) => sum + Number(c.balance), 0).toFixed(2);
+            
+            const tblDash = document.getElementById('dash-sales-table');
+            if(!tblDash) return;
+            tblDash.innerHTML = '';
+            orders.slice(-4).reverse().forEach(o => {
+                tblDash.innerHTML += `<tr><td>${o.orderNo}</td><td>Rs. ${o.total.toFixed(2)}</td><td>${o.status}</td></tr>`;
+            });
+        }
+
+        function applyRoleRestrictions() {
+            if(!activeUser) return;
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if (activeUser.role !== 'Admin') el.classList.add('d-none'); else el.classList.remove('d-none');
+            });
+            const subTxt = document.getElementById('submit-btn-text');
+            if(subTxt) {
+                subTxt.textContent = activeUser.role === 'Admin' ? "Save & Approve Instantly" : "Send for Admin Approval";
+            }
+        }
+
+        function switchView(viewName) {
+            document.querySelectorAll('.app-view').forEach(view => view.classList.add('d-none'));
+            const targetView = document.getElementById('view-' + viewName);
+            if(targetView) targetView.classList.remove('d-none');
+            
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = Array.from(document.querySelectorAll('.nav-item')).find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(viewName));
+            if(activeBtn) activeBtn.classList.add('active');
+            sessionStorage.setItem('bms_current_view', viewName);
+        }
+
+        function loadEmployees() {
+            if (!activeUser || activeUser.role !== 'Admin') return;
+            const users = JSON.parse(localStorage.getItem('bms_users')).filter(u => u.companyCode === activeUser.companyCode);
+            const tableBody = document.getElementById('table-employees'); 
+            if(!tableBody) return;
+            tableBody.innerHTML = '';
+            users.forEach(u => {
+                tableBody.innerHTML += `<tr><td><b>${u.name}</b></td><td>${u.username}</td><td>${u.role}</td><td>${u.role !== 'Admin' ? `<button class="btn btn-sm text-danger" onclick="deleteEmployee('${u.userCode}')"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`;
+            });
+        }
+
+        function loadAllData() { loadCustomers(); loadItems(); loadOrders(); loadEmployees(); renderNotifications(); updateDashboardMetrics(); }
+
+        document.getElementById('register-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const companyName = document.getElementById('reg-company-name').value.trim();
+            const companyAddress = document.getElementById('reg-company-address').value.trim();
+            const adminName = document.getElementById('reg-admin-name').value.trim();
+            const username = document.getElementById('reg-username').value.trim().toLowerCase();
+            const password = document.getElementById('reg-password').value;
+
+            let users = JSON.parse(localStorage.getItem('bms_users'));
+            const companyCode = 'CO-' + Math.floor(1000 + Math.random() * 9000);
+            
+            const companies = JSON.parse(localStorage.getItem('bms_companies'));
+            companies.push({ companyCode, companyName, companyAddress });
+            localStorage.setItem('bms_companies', JSON.stringify(companies));
+
+            users.push({ userCode: 'USR-'+Math.floor(1000+Math.random()*9000), companyCode, name: adminName, username, password: btoa(password), role: 'Admin' });
+            localStorage.setItem('bms_users', JSON.stringify(users));
+            await autoSaveToCloud();
+            alert(`Registered Successfully! Code: ${companyCode}`);
+            document.getElementById('btn-login-tab').click();
+        });
+
+        document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const companyCode = document.getElementById('login-company-code').value.trim();
+            const role = document.getElementById('login-role').value;
+            const username = document.getElementById('login-username').value.trim().toLowerCase();
+            const password = btoa(document.getElementById('login-password').value);
+
+            const users = JSON.parse(localStorage.getItem('bms_users'));
+            const user = users.find(u => u.username === username && u.companyCode === companyCode && u.role === role && u.password === password);
+
+            if (user) {
+                activeUser = user;
+                sessionStorage.setItem('bms_active_user', JSON.stringify(user));
+                document.getElementById('auth-section').classList.add('d-none');
+                document.getElementById('app-section').classList.remove('d-none');
+                document.getElementById('brand-name').textContent = "BMS - " + companyCode;
+                applyRoleRestrictions(); loadAllData(); checkOverdueCreditPeriods(); switchView('dashboard'); startLiveUpdateLoop();
+            } else { alert("Authentication Invalid!"); }
+        });
+
+        document.getElementById('form-customer')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const customers = JSON.parse(localStorage.getItem('bms_customers'));
+            customers.push({
+                id: 'CST-' + Date.now(), companyCode: activeUser.companyCode,
+                name: document.getElementById('cust-name').value, phone: document.getElementById('cust-phone').value,
+                address: document.getElementById('cust-address').value, balance: parseFloat(document.getElementById('cust-balance').value || 0),
+                creditPeriod: parseInt(document.getElementById('cust-credit-period').value || 30)
+            });
+            localStorage.setItem('bms_customers', JSON.stringify(customers));
+            bootstrap.Modal.getInstance(document.getElementById('modal-customer')).hide();
+            document.getElementById('form-customer').reset(); loadCustomers(); updateDashboardMetrics(); await autoSaveToCloud();
+        });
+
+        document.getElementById('form-item')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const items = JSON.parse(localStorage.getItem('bms_items'));
+            items.push({
+                id: 'ITM-' + Date.now(), code: 'SKU-' + Math.floor(1000 + Math.random() * 9000), companyCode: activeUser.companyCode,
+                name: document.getElementById('item-name').value, cost: parseFloat(document.getElementById('item-cost').value),
+                sell: parseFloat(document.getElementById('item-sell').value), qty: parseInt(document.getElementById('item-qty').value),
+                lowStock: parseInt(document.getElementById('item-low').value)
+            });
+            localStorage.setItem('bms_items', JSON.stringify(items));
+            bootstrap.Modal.getInstance(document.getElementById('modal-item')).hide();
+            document.getElementById('form-item').reset(); loadItems(); await autoSaveToCloud();
+        });
+
+        document.getElementById('form-employee')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const users = JSON.parse(localStorage.getItem('bms_users'));
+            users.push({
+                userCode: 'USR-' + Date.now(),
+                companyCode: activeUser.companyCode,
+                name: document.getElementById('emp-name').value,
+                username: document.getElementById('emp-username').value.trim().toLowerCase(),
+                password: btoa(document.getElementById('emp-password').value),
+                role: 'Employee'
+            });
+            localStorage.setItem('bms_users', JSON.stringify(users));
+            bootstrap.Modal.getInstance(document.getElementById('modal-employee')).hide();
+            document.getElementById('form-employee').reset(); loadEmployees(); await autoSaveToCloud();
+        });
+
+        document.getElementById('btn-logout')?.addEventListener('click', () => { sessionStorage.clear(); location.reload(); });
+        document.getElementById('btn-login-tab')?.addEventListener('click', () => { document.getElementById('login-form').classList.remove('d-none'); document.getElementById('register-form').classList.add('d-none'); });
+        document.getElementById('btn-register-tab')?.addEventListener('click', () => { document.getElementById('login-form').classList.add('d-none'); document.getElementById('register-form').classList.remove('d-none'); });
+
         window.addEventListener('DOMContentLoaded', () => {
             if (activeUser) {
                 document.getElementById('auth-section').classList.add('d-none');
                 document.getElementById('app-section').classList.remove('d-none');
                 document.getElementById('brand-name').textContent = "BMS - " + activeUser.companyCode;
-                document.getElementById('user-display').textContent = `${activeUser.name} (${activeUser.role})`;
-                
-                applyRoleRestrictions();
-                loadAllData();
-                
-                const lastView = sessionStorage.getItem('bms_current_view') || 'dashboard';
-                switchView(lastView);
-                
-                startLiveUpdateLoop();
+                applyRoleRestrictions(); loadAllData(); checkOverdueCreditPeriods(); switchView(sessionStorage.getItem('bms_current_view') || 'dashboard'); startLiveUpdateLoop();
             }
         });
     </script>
