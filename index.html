@@ -45,7 +45,12 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Password / මුරපදය</label>
-                    <input type="password" id="login-password" class="form-control" required>
+                    <div class="input-group">
+                        <input type="password" id="login-password" class="form-control" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('login-password', this)">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary w-100 py-2 btn-modern">Log In</button>
             </form>
@@ -66,7 +71,12 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Choose Password</label>
-                    <input type="password" id="reg-password" class="form-control" required>
+                    <div class="input-group">
+                        <input type="password" id="reg-password" class="form-control" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('reg-password', this)">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-success w-100 py-2 btn-modern">Register & Generate Codes</button>
             </form>
@@ -124,6 +134,13 @@
                             <h4 class="fw-bold mt-1" id="dash-outstanding">Rs. 0.00</h4>
                         </div>
                     </div>
+                </div>
+
+                <!-- NEW: SYNC DATA TO OTHER DEVICE SECTION -->
+                <div class="card p-3 shadow-sm border-0 mb-4 border-start border-primary border-4">
+                    <h5 class="fw-bold text-primary"><i class="fa-solid fa-mobile-screen-button me-2"></i>Link with other Phones (වෙනත් ෆෝන් සම්බන්ධ කිරීම)</h5>
+                    <p class="text-muted small mb-3">වෙනත් දුරකථනයකින් මෙම පද්ධතියට ලොග් වීමට අවශ්‍ය නම්, පහත බොත්තම ක්ලික් කර ලැබෙන ලින්ක් එක එම දුරකථනයට යවා විවෘත කරන්න.</p>
+                    <button class="btn btn-sm btn-primary align-self-start" onclick="generateSyncLink()"><i class="fa-solid fa-share-nodes me-2"></i>Generate Sync Link</button>
                 </div>
 
                 <div class="card p-3 shadow-sm border-0 mb-4">
@@ -391,7 +408,14 @@
                 <div class="modal-body">
                     <div class="mb-3"><label class="form-label">Full Name</label><input type="text" id="emp-name" class="form-control" required></div>
                     <div class="mb-3"><label class="form-label">Username</label><input type="text" id="emp-username" class="form-control" required></div>
-                    <div class="mb-3"><label class="form-label">Temporary Password</label><input type="password" id="emp-password" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">Temporary Password</label>
+                        <div class="input-group">
+                            <input type="password" id="emp-password" class="form-control" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('emp-password', this)">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer"><button type="submit" class="btn btn-primary">Create Account</button></div>
             </form>
