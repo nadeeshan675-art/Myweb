@@ -104,8 +104,8 @@
         }
         
         @media print {
-            body * { visibility: hidden; }
-            #print-area, #print-area * { visibility: visible; }
+            body * { display: none !important; }
+            #print-area, #print-area * { display: block !important; visibility: visible !important; }
             #print-area { position: absolute; left: 0; top: 0; width: 100%; }
         }
     </style>
@@ -505,8 +505,8 @@
         </div>
     </div>
 
-    <!-- Hidden Invoice Print Area -->
-    <div id="print-area" class="d-none p-4" style="background:#fff; color:#000;"></div>
+    <!-- Hidden Invoice Print Area (d-none removed to fix print visibility bug) -->
+    <div id="print-area" style="display: none;"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -645,18 +645,29 @@
                 const customer = customers.find(c => c.id === o.custId);
                 if(customer && Number(customer.balance) > 0) {
                     const allowedDays = customer.creditPeriod || 30;
-                    const orderDate = new Date(o.date);
+                    
+                    // Fixed: ISO Format parsing fallback to prevent crash
+                    let orderDateStr = o.date;
+                    if(orderDateStr.includes('/')) {
+                        const parts = orderDateStr.split('/');
+                        if(parts[0].length === 4) orderDateStr = `${parts[0]}-${parts[1]}-${parts[2]}`;
+                        else orderDateStr = `${parts[2]}-${parts[0]}-${parts[1]}`;
+                    }
+                    const orderDate = new Date(orderDateStr);
                     const today = new Date();
-                    const diffTime = Math.abs(today - orderDate);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    const remaining = allowedDays - diffDays;
+                    
+                    if (!isNaN(orderDate.getTime())) {
+                        const diffTime = Math.abs(today - orderDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        const remaining = allowedDays - diffDays;
 
-                    if (remaining <= 0) {
-                        hasOverdueAlert = true;
-                        alertPanel.innerHTML += `
-                            <div class="alert alert-danger p-2 small mb-1 border-0 shadow-sm d-flex justify-content-between align-items-center">
-                                <span><i class="fa-solid fa-triangle-exclamation fa-flash me-2"></i><b>${o.custName}</b> has OVERDUE payment for Order ${o.orderNo}! (Passed by ${Math.abs(remaining)} days)</span>
-                            </div>`;
+                        if (remaining <= 0) {
+                            hasOverdueAlert = true;
+                            alertPanel.innerHTML += `
+                                <div class="alert alert-danger p-2 small mb-1 border-0 shadow-sm d-flex justify-content-between align-items-center">
+                                    <span><i class="fa-solid fa-triangle-exclamation fa-flash me-2"></i><b>${o.custName}</b> has OVERDUE payment for Order ${o.orderNo}! (Passed by ${Math.abs(remaining)} days)</span>
+                                </div>`;
+                        }
                     }
                 }
             });
@@ -722,6 +733,10 @@
             const orderNo = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
             const orders = JSON.parse(localStorage.getItem('bms_orders'));
             
+            // Fixed: Save in reliable ISO-like format string for safer global parsing
+            const todayObj = new Date();
+            const dateStr = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
+
             orders.push({
                 id: 'ORD-' + Date.now(),
                 orderNo: orderNo,
@@ -735,7 +750,7 @@
                 empName: activeUser.name,
                 payment: payment,
                 status: 'Pending', 
-                date: new Date().toLocaleDateString()
+                date: dateStr
             });
             localStorage.setItem('bms_orders', JSON.stringify(orders));
 
@@ -792,7 +807,7 @@
 
             const area = document.getElementById('print-area');
             area.innerHTML = `
-                <div style="font-family: 'Courier New', monospace; padding: 25px; border: 2px solid #000; max-width: 650px; margin: auto; background: #fff;">
+                <div style="font-family: 'Courier New', monospace; padding: 25px; border: 2px solid #000; max-width: 650px; margin: auto; background: #fff; color: #000;">
                     <div style="text-align: center; margin-bottom: 15px;">
                         <h2 style="margin: 0; text-transform: uppercase; font-weight: bold; letter-spacing:1px;">${comp.companyName}</h2>
                         <p style="margin: 4px 0; font-size: 13px;">${comp.companyAddress}</p>
@@ -848,7 +863,11 @@
                     </div>
                 </div>
             `;
+            
+            // Temporary reveal for print system capture
+            area.style.display = 'block';
             window.print();
+            area.style.display = 'none';
         }
 
         async function approveOrder(orderId) {
