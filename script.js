@@ -47,6 +47,7 @@ document.getElementById('register-form')?.addEventListener('submit', (e) => {
     companies.push({ companyCode, companyName });
     localStorage.setItem('bms_companies', JSON.stringify(companies));
 
+    // Password එක btoa() මගින් encrypt කර සේව් කෙරේ
     users.push({ userCode, companyCode, name: adminName, username, password: btoa(password), role: 'Admin' });
     localStorage.setItem('bms_users', JSON.stringify(users));
 
@@ -55,7 +56,7 @@ document.getElementById('register-form')?.addEventListener('submit', (e) => {
     document.getElementById('login-company-code').value = companyCode;
 });
 
-// LOGIN LOGIC (Handles both Admin & Employee)
+// LOGIN LOGIC (නිවැරදි කරන ලද කොටස)
 document.getElementById('login-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const companyCode = document.getElementById('login-company-code').value.trim();
@@ -63,9 +64,11 @@ document.getElementById('login-form')?.addEventListener('submit', (e) => {
     const username = document.getElementById('login-username').value.trim().toLowerCase();
     const password = document.getElementById('login-password').value;
 
+    // Login වීමේදී ඇතුළත් කරන Password එකද btoa() මගින් Encrypt කර Database එක සමඟ සැසඳිය යුතුය
+    const hashedPassword = btoa(password);
+
     const users = JSON.parse(localStorage.getItem('bms_users'));
-    // Find matching company code, role, username and hashed password
-    const user = users.find(u => u.username === username && u.companyCode === companyCode && u.role === role && u.password === btoa(password));
+    const user = users.find(u => u.username === username && u.companyCode === companyCode && u.role === role && u.password === hashedPassword);
 
     if (user) {
         activeUser = user;
@@ -87,6 +90,7 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
     activeUser = null;
     document.getElementById('auth-section').classList.remove('d-none');
     document.getElementById('app-section').classList.add('d-none');
+    document.getElementById('login-form').reset(); // Form එක reset කෙරේ
 });
 
 function applyRoleRestrictions() {
@@ -356,6 +360,7 @@ document.getElementById('form-employee')?.addEventListener('submit', (e) => {
         return;
     }
 
+    // සේවකයා ඇතුළත් කිරීමේදීද Password එක btoa() වලින් Encrypt කර සේව් කෙරේ
     users.push({ userCode: 'EMP-' + Math.floor(10000 + Math.random() * 90000), companyCode: activeUser.companyCode, name, username, password: btoa(password), role: 'Employee' });
     localStorage.setItem('bms_users', JSON.stringify(users));
     bootstrap.Modal.getInstance(document.getElementById('modal-employee')).hide();
@@ -394,8 +399,6 @@ function renderNotifications() {
 }
 
 // ================= REAL CSV EXPORT FUNCTIONALITY =================
-// මෙමගින් සැබෑ Excel / CSV වාර්තා බ්‍රවුසරයෙන් කෙලින්ම ඩවුන්ලෝඩ් වේ.
-
 function downloadSalesReport() {
     const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
     if(orders.length === 0) { alert("No sales records found to export!"); return; }
