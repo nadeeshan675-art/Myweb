@@ -136,7 +136,7 @@
                         </button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 btn-modern">Log In & Sync Data</button>
+                <button type="submit" id="btn-login-submit" class="btn btn-primary w-100 py-2 btn-modern">Log In & Sync Data</button>
             </form>
 
             <!-- Register Form -->
@@ -162,7 +162,7 @@
                         </button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-success w-100 py-2 btn-modern">Register & Save</button>
+                <button type="submit" id="btn-reg-submit" class="btn btn-success w-100 py-2 btn-modern">Register & Save</button>
             </form>
         </div>
     </div>
@@ -475,7 +475,6 @@
         if (!localStorage.getItem('bms_orders')) localStorage.setItem('bms_orders', JSON.stringify([]));
         if (!localStorage.getItem('bms_notifications')) localStorage.setItem('bms_notifications', JSON.stringify([]));
 
-        // ✨ Refresh ආරක්ෂණ තාක්ෂණය සඳහා sessionStorage භාවිතය
         let activeUser = JSON.parse(sessionStorage.getItem('bms_active_user')) || null; 
         let autoSyncInterval = null; 
 
@@ -590,13 +589,25 @@
 
         document.getElementById('register-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btnSubmit = document.getElementById('btn-reg-submit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i> Registering...";
+
+            // Register වීමට පෙර Cloud එකේ අලුත්ම දත්ත Download කරගන්නවා (Username Double වෙනවාද බලන්න)
+            await downloadFromCloud(true);
+
             const companyName = document.getElementById('reg-company-name').value.trim();
             const adminName = document.getElementById('reg-admin-name').value.trim();
             const username = document.getElementById('reg-username').value.trim().toLowerCase();
             const password = document.getElementById('reg-password').value;
 
             let users = JSON.parse(localStorage.getItem('bms_users'));
-            if (users.find(u => u.username === username)) { alert("Username already exists!"); return; }
+            if (users.find(u => u.username === username)) { 
+                alert("Username already exists!"); 
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Register & Save";
+                return; 
+            }
 
             const companyCode = 'CO-' + Math.floor(1000 + Math.random() * 9000);
             const userCode = 'USR-' + Math.floor(10000 + Math.random() * 90000);
@@ -608,29 +619,41 @@
             users.push({ userCode, companyCode, name: adminName, username, password: btoa(password), role: 'Admin' });
             localStorage.setItem('bms_users', JSON.stringify(users));
 
-            alert(`Admin Registered!\nCompany Code: ${companyCode}\nUse this Code to login!`);
+            // Cloud එකට Save කරනවා
             await autoSaveToCloud();
+            
+            alert(`Admin Registered Successfully!\n\nYOUR COMPANY CODE: ${companyCode}\n\nමෙම Code එක අනිත් Phone වලටත් දී ලොග් වෙන්න.`);
+            
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "Register & Save";
 
             document.getElementById('btn-login-tab').click();
             document.getElementById('login-company-code').value = companyCode;
         });
 
+        // ✨ ඕනෑම ෆෝන් එකකින් ලොග් වෙන්න පුළුවන් වන ලොජික් එක
         document.getElementById('login-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btnSubmit = document.getElementById('btn-login-submit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = "<i class='fa-solid fa-circle-notch fa-spin me-2'></i> Cloud Connecting...";
+
+            // 🌟 වැදගත්ම දේ: වෙනත් ෆෝන් එකකින් ලොග් වෙද්දී මුලින්ම Cloud එකේ තියෙන අලුත්ම Accounts ඩවුන්ලෝඩ් කරනවා!
+            await downloadFromCloud(true);
+
             const companyCode = document.getElementById('login-company-code').value.trim();
             const role = document.getElementById('login-role').value;
             const username = document.getElementById('login-username').value.trim().toLowerCase();
             const password = document.getElementById('login-password').value;
 
-            await downloadFromCloud(true);
-
             const hashedPassword = btoa(password);
             const users = JSON.parse(localStorage.getItem('bms_users'));
+            
+            // දැන් අලුතින් ඩවුන්ලෝඩ් වුණු දත්ත එක්ක මැච් කරලා බලනවා
             const user = users.find(u => u.username === username && u.companyCode === companyCode && u.role === role && u.password === hashedPassword);
 
             if (user) {
                 activeUser = user;
-                // ✨ Session එකේ User සේව් කිරීම
                 sessionStorage.setItem('bms_active_user', JSON.stringify(user)); 
 
                 document.getElementById('auth-section').classList.add('d-none');
@@ -643,13 +666,14 @@
                 switchView('dashboard');
                 startLiveUpdateLoop();
             } else {
-                alert("Login failed! Please check company code, username, or password.");
+                alert("Login failed! දත්ත වැරදියි හෝ ඔබ තවම Cloud එකට සම්බන්ධ වී නැත.");
             }
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "Log In & Sync Data";
         });
 
         document.getElementById('btn-logout')?.addEventListener('click', () => {
             activeUser = null;
-            // ✨ Session Data මකා දැමීම
             sessionStorage.removeItem('bms_active_user');
             sessionStorage.removeItem('bms_current_view');
             stopLiveUpdateLoop();
@@ -674,7 +698,6 @@
             const activeBtn = Array.from(document.querySelectorAll('.nav-item')).find(btn => btn.getAttribute('onclick').includes(viewName));
             if(activeBtn) activeBtn.classList.add('active');
 
-            // ✨ Refresh කළ විට නැවත මේ screen එකටම ඒමට සේව් කර ගැනීම
             sessionStorage.setItem('bms_current_view', viewName);
         }
 
@@ -1003,7 +1026,7 @@
             document.body.removeChild(link);
         }
 
-        // ✨ වැදගත්ම කොටස: පේජ් එක REFRESH කරනකොට Auto-Login වන Logic එක
+        // Auto Load on page refresh
         window.addEventListener('DOMContentLoaded', () => {
             if (activeUser) {
                 document.getElementById('auth-section').classList.add('d-none');
@@ -1014,7 +1037,6 @@
                 applyRoleRestrictions();
                 loadAllData();
                 
-                // කලින් හිටපු පේජ් එකටම යන්න (නැත්නම් Dashboard එකට යන්න)
                 const lastView = sessionStorage.getItem('bms_current_view') || 'dashboard';
                 switchView(lastView);
                 
