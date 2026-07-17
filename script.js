@@ -1,3 +1,7 @@
+// ================= CLOUD CONFIGURATION =================
+// ⚠️ පියවර 1 හිදී ඔබට ලැබුණු Google Apps Script Web App URL එක මෙතැනට ඇතුලත් කරන්න!
+const CLOUD_API_URL = "https://script.google.com/macros/s/AKfycbw1BDQ5YWBP8eXM8RvazHg7ATLsfGCAYIUMPbV31vqdbmulLFq-Sob_FKMnDyvOcYmU/exec"; 
+
 // LocalStorage Setup
 if (!localStorage.getItem('bms_companies')) localStorage.setItem('bms_companies', JSON.stringify([]));
 if (!localStorage.getItem('bms_users')) localStorage.setItem('bms_users', JSON.stringify([]));
@@ -7,6 +11,92 @@ if (!localStorage.getItem('bms_orders')) localStorage.setItem('bms_orders', JSON
 if (!localStorage.getItem('bms_notifications')) localStorage.setItem('bms_notifications', JSON.stringify([]));
 
 let activeUser = null; 
+
+// ================= CLOUD SYNC FUNCTIONS =================
+
+// 1. දත්ත Google Sheet එකට Upload කිරීම (Save to Cloud)
+async function uploadToCloud() {
+    if (CLOUD_API_URL.includes("මෙතැනට")) {
+        alert("කරුණාකර ප්‍රථමයෙන් ඔබගේ Google Sheet API URL එක script.js ගොනුවට ඇතුලත් කරන්න!");
+        return;
+    }
+    
+    const dbData = {
+        companies: JSON.parse(localStorage.getItem('bms_companies')),
+        users: JSON.parse(localStorage.getItem('bms_users')),
+        customers: JSON.parse(localStorage.getItem('bms_customers')),
+        items: JSON.parse(localStorage.getItem('bms_items')),
+        orders: JSON.parse(localStorage.getItem('bms_orders')),
+        notifications: JSON.parse(localStorage.getItem('bms_notifications'))
+    };
+
+    try {
+        const response = await fetch(CLOUD_API_URL, {
+            method: "POST",
+            mode: "no-cors", // CORS bypass
+            cache: "no-cache",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dbData)
+        });
+        
+        alert("☁️ Data Saved to Cloud Successfully!\nදත්ත සාර්ථකව Cloud එකේ සුරැකිණි!");
+    } catch (error) {
+        console.error("Upload error: ", error);
+        alert("❌ Cloud Save Failed! Please check internet connection.");
+    }
+}
+
+// 2. Google Sheet එකෙන් දත්ත බාගත කිරීම (Load from Cloud)
+async function downloadFromCloud() {
+    if (CLOUD_API_URL.includes("මෙතැනට")) {
+        alert("කරුණාකර ප්‍රථමයෙන් ඔබගේ Google Sheet API URL එක script.js ගොනුවට ඇතුලත් කරන්න!");
+        return;
+    }
+
+    if (!confirm("පවතින දත්ත මකා දමා Cloud එකේ ඇති දත්ත ලබාගැනීමට අවශ්‍යද?")) return;
+
+    try {
+        const response = await fetch(CLOUD_API_URL);
+        const cloudData = await response.json();
+        
+        if (cloudData && cloudData.users) {
+            localStorage.setItem('bms_companies', JSON.stringify(cloudData.companies || []));
+            localStorage.setItem('bms_users', JSON.stringify(cloudData.users || []));
+            localStorage.setItem('bms_customers', JSON.stringify(cloudData.customers || []));
+            localStorage.setItem('bms_items', JSON.stringify(cloudData.items || []));
+            localStorage.setItem('bms_orders', JSON.stringify(cloudData.orders || []));
+            localStorage.setItem('bms_notifications', JSON.stringify(cloudData.notifications || []));
+            
+            alert("☁️ Cloud Data Loaded Successfully!\nදත්ත සාර්ථකව යාවත්කාලීන විය. කරුණාකර නැවත Login වන්න.");
+            // Logout
+            activeUser = null;
+            document.getElementById('auth-section').classList.remove('d-none');
+            document.getElementById('app-section').classList.add('d-none');
+            document.getElementById('login-form').reset();
+        } else {
+            alert("☁️ Cloud database is empty. Please 'Save Cloud' first.");
+        }
+    } catch (error) {
+        console.error("Download error: ", error);
+        alert("❌ Cloud Load Failed! No database found or connection error.");
+    }
+}
+
+
+// ================= PASSWORD VISIBILITY TOGGLE =================
+function togglePasswordVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
 
 // Form tabs toggles
 document.getElementById('btn-login-tab')?.addEventListener('click', () => toggleAuthTabs('login'));
@@ -50,7 +140,7 @@ document.getElementById('register-form')?.addEventListener('submit', (e) => {
     users.push({ userCode, companyCode, name: adminName, username, password: btoa(password), role: 'Admin' });
     localStorage.setItem('bms_users', JSON.stringify(users));
 
-    alert(`Registration Successful!\nCompany Code: ${companyCode}\nUse this Code to log in or link employees!`);
+    alert(`Registration Successful!\nCompany Code: ${companyCode}\nUse this Code to log in!`);
     toggleAuthTabs('login');
     document.getElementById('login-company-code').value = companyCode;
 });
@@ -245,7 +335,7 @@ function deleteItem(id) {
     }
 }
 
-// Orders Workflow (UPDATED FOR PRINTING)
+// Orders Workflow
 function loadOrders() {
     const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
     const tableBody = document.getElementById('table-orders');
@@ -253,8 +343,6 @@ function loadOrders() {
 
     orders.forEach(o => {
         let actions = '';
-        
-        // Admin කෙනෙක්ට පමණක් Print බොත්තම දිස්වේ
         let printButton = '';
         if (activeUser.role === 'Admin') {
             printButton = `<button class="btn btn-sm btn-outline-primary py-0 px-2 ms-1" onclick="printInvoice('${o.id}')"><i class="fa-solid fa-print"></i> Print</button>`;
@@ -358,9 +446,7 @@ function rejectOrder(orderId) {
     }
 }
 
-// ================= NEW INVOICE PRINTING FUNCTION =================
-// මෙමගින් තෝරාගත් ඇණවුමේ Invoice එක නව Window එකක් හරහා Print කිරීමට සලස්වයි.
-
+// INVOICE PRINTING
 function printInvoice(orderId) {
     const orders = JSON.parse(localStorage.getItem('bms_orders'));
     const order = orders.find(o => o.id === orderId);
@@ -372,10 +458,8 @@ function printInvoice(orderId) {
         return;
     }
 
-    // නව Print Window එකක් විවෘත කිරීම
     const printWindow = window.open('', '_blank', 'width=800,height=900');
     
-    // Invoice Layout HTML කේතය
     const invoiceHTML = `
         <html>
         <head>
@@ -399,9 +483,7 @@ function printInvoice(orderId) {
                 .totals-row { display: flex; justify-content: space-between; padding: 6px 0; }
                 .grand-total { font-size: 18px; font-weight: bold; border-top: 2px solid #007bff; padding-top: 10px; color: #007bff; }
                 .footer { clear: both; text-align: center; font-size: 12px; color: #888; margin-top: 80px; border-top: 1px solid #eee; padding-top: 20px; }
-                @media print {
-                    .no-print { display: none; }
-                }
+                @media print { .no-print { display: none; } }
             </style>
         </head>
         <body>
@@ -420,7 +502,7 @@ function printInvoice(orderId) {
 
             <div class="details-row">
                 <div class="details-box">
-                    <h4>Billed To (ගනුදෙනුකරු):</h4>
+                    <h4>Billed To:</h4>
                     <p><b>Name:</b> ${order.custName}</p>
                     <p><b>Phone:</b> ${order.custPhone || 'N/A'}</p>
                     <p><b>Address:</b> ${order.custAddress || 'N/A'}</p>
@@ -436,7 +518,7 @@ function printInvoice(orderId) {
             <table>
                 <thead>
                     <tr>
-                        <th>Item Description (භාණ්ඩය)</th>
+                        <th>Item Description</th>
                         <th>Code</th>
                         <th class="text-right">Unit Price</th>
                         <th class="text-right">Quantity</th>
@@ -538,7 +620,7 @@ function renderNotifications() {
     }
 }
 
-// ================= REAL CSV EXPORT FUNCTIONALITY =================
+// REAL CSV EXPORT FUNCTIONALITY
 function downloadSalesReport() {
     const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
     if(orders.length === 0) { alert("No sales records found to export!"); return; }
@@ -572,3 +654,4 @@ function triggerDownload(content, fileName) {
     link.click();
     document.body.removeChild(link);
 }
+
