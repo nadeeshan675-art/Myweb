@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sri Lankan Business Management System (BMS)</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ================= AUTH SECTION ================= -->
+    <div id="auth-section" class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card p-4 shadow-lg w-100" style="max-width: 450px; border-radius: 20px;">
+            <div class="text-center mb-4">
+                <i class="fa-solid fa-file-invoice-dollar fa-3x text-primary mb-2"></i>
+                <h3 class="fw-bold">BMS Sri Lanka</h3>
+                <p class="text-muted">ව්‍යාපාර කළමනාකරණ පද්ධතිය</p>
+                <div class="btn-group w-100 mb-3" role="group">
+                    <button type="button" class="btn btn-outline-primary active" id="btn-login-tab">Log In</button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-register-tab">Register Admin</button>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form">
+                <div class="mb-3">
+                    <label class="form-label">Company Code / ආයතන කේතය</label>
+                    <input type="text" id="login-company-code" class="form-control" required placeholder="e.g. CO-1234">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Username / පරිශීලක නාමය</label>
+                    <input type="text" id="login-username" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password / මුරපදය</label>
+                    <input type="password" id="login-password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 btn-modern">Log In</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="d-none">
+                <div class="mb-3">
+                    <label class="form-label">Company Name / ආයතනයේ නම</label>
+                    <input type="text" id="reg-company-name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Admin Name / පරිපාලකගේ නම</label>
+                    <input type="text" id="reg-admin-name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Choose Username</label>
+                    <input type="text" id="reg-username" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Choose Password</label>
+                    <input type="password" id="reg-password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100 py-2 btn-modern">Register & Generate Codes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MAIN APP SYSTEM ================= -->
+    <div id="app-section" class="d-none">
+        
+        <!-- Top Sticky Header -->
+        <header class="navbar navbar-expand navbar-dark bg-primary sticky-top px-3 shadow">
+            <span class="navbar-brand fw-bold" id="brand-name">BMS App</span>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <div class="dropdown text-white">
+                    <i class="fa-solid fa-bell position-relative fs-5 cursor-pointer" data-bs-toggle="dropdown">
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="noti-count" style="font-size: 10px;">0</span>
+                    </i>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" id="noti-list" style="width: 280px; max-height: 300px; overflow-y: auto;">
+                        <li><h6 class="dropdown-header">Notifications</h6></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Dynamic Notifications -->
+                    </ul>
+                </div>
+                <span class="text-white small" id="user-display">Code: --</span>
+                <button class="btn btn-outline-light btn-sm" id="btn-logout"><i class="fa-solid fa-sign-out"></i></button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="container py-4 mb-5 pb-5">
+            
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="app-view">
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="card p-3 shadow-sm border-0 bg-gradient-primary text-white">
+                            <small>Total Sales / මුළු විකුණුම්</small>
+                            <h4 class="fw-bold mt-1" id="dash-sales">Rs. 0.00</h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card p-3 shadow-sm border-0 bg-gradient-success text-white">
+                            <small>Net Profit / ලාභය</small>
+                            <h4 class="fw-bold mt-1" id="dash-profit">Rs. 0.00</h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card p-3 shadow-sm border-0 bg-gradient-warning text-dark">
+                            <small>Active Orders / ඇණවුම්</small>
+                            <h4 class="fw-bold mt-1" id="dash-orders">0</h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card p-3 shadow-sm border-0 bg-gradient-danger text-white">
+                            <small>Outstanding / හිඟ මුදල්</small>
+                            <h4 class="fw-bold mt-1" id="dash-outstanding">Rs. 0.00</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Dashboard Charts section (Handled nicely inside modern list) -->
+                <div class="card p-3 shadow-sm border-0 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-chart-line text-primary me-2"></i>Business Trend Analysis</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6>Daily Sales Snapshot (Last 5 Sales)</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Order #</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dash-sales-table">
+                                        <!-- Dynamic -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6>System Alerts / අනතුරු ඇඟවීම්</h6>
+                            <div id="dash-alerts" class="text-danger small">
+                                <!-- Alerts will display here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers View -->
+            <div id="view-customers" class="app-view d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold">Customers / ගනුදෙනුකරුවන්</h4>
+                    <button class="btn btn-primary btn-sm admin-only" data-bs-toggle="modal" data-bs-target="#modal-customer"><i class="fa-solid fa-plus me-1"></i>Add New</button>
+                </div>
+                <div class="card p-3 border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Address</th>
+                                    <th>Outstanding</th>
+                                    <th class="admin-only">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-customers">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items / Inventory View -->
+            <div id="view-items" class="app-view d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold">Inventory & Items / තොග සහ භාණ්ඩ</h4>
+                    <button class="btn btn-primary btn-sm admin-only" data-bs-toggle="modal" data-bs-target="#modal-item"><i class="fa-solid fa-plus me-1"></i>Add Item</button>
+                </div>
+                <div class="card p-3 border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Cost Price</th>
+                                    <th>Selling Price</th>
+                                    <th>Available Stock</th>
+                                    <th>Status</th>
+                                    <th class="admin-only">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-items">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders View -->
+            <div id="view-orders" class="app-view d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold">Orders & Billings / ඇණවුම්</h4>
+                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-order"><i class="fa-solid fa-cart-plus me-1"></i>Create Order</button>
+                </div>
+                <div class="card p-3 border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Total (Rs.)</th>
+                                    <th>Employee</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-orders">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employees (Admin Only) View -->
+            <div id="view-employees" class="app-view d-none admin-only">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold">Employee Directory / සේවක කළමනාකරණය</h4>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-employee"><i class="fa-solid fa-user-plus me-1"></i>Add Employee</button>
+                </div>
+                <div class="card p-3 border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-employees">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports View -->
+            <div id="view-reports" class="app-view d-none admin-only">
+                <h4 class="fw-bold mb-3">Reports & Insights / වාර්තා</h4>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card p-3 border-0 shadow-sm h-100">
+                            <h5>Export Center</h5>
+                            <p class="text-muted small">Download instant business summary reports in Excel or PDF formats.</p>
+                            <div class="d-flex flex-column gap-2">
+                                <button class="btn btn-outline-danger w-100" onclick="exportReport('PDF')"><i class="fa-solid fa-file-pdf me-2"></i>Export Business Summary (PDF)</button>
+                                <button class="btn btn-outline-success w-100" onclick="exportReport('EXCEL')"><i class="fa-solid fa-file-excel me-2"></i>Export Inventory Data (Excel)</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card p-3 border-0 shadow-sm h-100">
+                            <h5>Business Metrics Sheet</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <th>Gross Inventory Value (Cost):</th>
+                                            <td id="rep-inv-cost">Rs. 0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Total Expected Revenue:</th>
+                                            <td id="rep-inv-sell">Rs. 0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Total Orders Approved:</th>
+                                            <td id="rep-total-orders">0</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Total Outstanding Debtors:</th>
+                                            <td id="rep-outstanding">Rs. 0.00</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Bottom Navigation Bar (Android-Like Mobile Experience) -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="switchView('dashboard')">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Home</span>
+            </button>
+            <button class="nav-item" onclick="switchView('customers')">
+                <i class="fa-solid fa-users"></i>
+                <span>Customers</span>
+            </button>
+            <button class="nav-item" onclick="switchView('items')">
+                <i class="fa-solid fa-boxes-stacked"></i>
+                <span>Items</span>
+            </button>
+            <button class="nav-item" onclick="switchView('orders')">
+                <i class="fa-solid fa-file-invoice"></i>
+                <span>Orders</span>
+            </button>
+            <button class="nav-item admin-only" onclick="switchView('employees')">
+                <i class="fa-solid fa-user-gear"></i>
+                <span>Staff</span>
+            </button>
+            <button class="nav-item admin-only" onclick="switchView('reports')">
+                <i class="fa-solid fa-file-waveform"></i>
+                <span>Reports</span>
+            </button>
+        </nav>
+    </div>
+
+
+    <!-- ================= MODALS & POPUPS ================= -->
+
+    <!-- Add/Edit Customer Modal -->
+    <div class="modal fade" id="modal-customer" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="form-customer" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="cust-id">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="cust-name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" id="cust-phone" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input type="text" id="cust-address" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Outstanding Balance (LKR)</label>
+                        <input type="number" id="cust-balance" class="form-control" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Item Modal -->
+    <div class="modal fade" id="modal-item" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="form-item" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Inventory Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="item-id">
+                    <div class="mb-3">
+                        <label class="form-label">Product Name</label>
+                        <input type="text" id="item-name" class="form-control" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Cost Price (Rs.)</label>
+                            <input type="number" id="item-cost" class="form-control" required step="0.01">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Selling Price (Rs.)</label>
+                            <input type="number" id="item-sell" class="form-control" required step="0.01">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Initial Stock Level</label>
+                            <input type="number" id="item-qty" class="form-control" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Low Stock Trigger Qty</label>
+                            <input type="number" id="item-low" class="form-control" required value="5">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Order Modal -->
+    <div class="modal fade" id="modal-order" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="form-order" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">New Sales Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Customer</label>
+                        <select id="order-customer" class="form-select" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Select Product</label>
+                        <select id="order-item" class="form-select" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" id="order-qty" class="form-control" min="1" value="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select id="order-payment" class="form-select" required>
+                            <option value="Cash">Cash / මුදල්</option>
+                            <option value="Card">Card Payment</option>
+                            <option value="Credit">Credit Sales / ණය</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Submit Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Employee Modal -->
+    <div class="modal fade" id="modal-employee" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="form-employee" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Register Employee / සේවකයෙක් එකතු කිරීම</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Employee Full Name</label>
+                        <input type="text" id="emp-name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="emp-username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Temporary Password</label>
+                        <input type="password" id="emp-password" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Bootstrap Bundle JS with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom script logic -->
+    <script src="script.js"></script>
+</body>
+</html>

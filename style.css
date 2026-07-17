@@ -1,0 +1,99 @@
+/* Clean Material/Android Design */
+:root {
+    --primary-color: #0d6efd;
+    --primary-gradient: linear-gradient(135deg, #0d6efd, #0043a8);
+    --success-gradient: linear-gradient(135deg, #198754, #0f5132);
+    --warning-gradient: linear-gradient(135deg, #ffc107, #b08500);
+    --danger-gradient: linear-gradient(135deg, #dc3545, #842029);
+    --bottom-nav-height: 65px;
+}
+
+body {
+    background-color: #f8f9fa;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding-bottom: var(--bottom-nav-height);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Rounded Cards */
+.card {
+    border-radius: 14px;
+}
+
+/* Modern Gradient Cards */
+.bg-gradient-primary {
+    background: var(--primary-gradient);
+}
+.bg-gradient-success {
+    background: var(--success-gradient);
+}
+.bg-gradient-warning {
+    background: var(--warning-gradient);
+}
+.bg-gradient-danger {
+    background: var(--danger-gradient);
+}
+
+/* Bottom Android-Style App Navigation Bar */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--bottom-nav-height);
+    background-color: #ffffff;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+    z-index: 1030;
+}
+
+.bottom-nav .nav-item {
+    background: none;
+    border: none;
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 11px;
+    font-weight: 500;
+    flex: 1;
+    height: 100%;
+    transition: color 0.2s ease-in-out;
+}
+
+.bottom-nav .nav-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.bottom-nav .nav-item.active {
+    color: var(--primary-color);
+}
+
+.btn-modern {
+    border-radius: 10px;
+}
+
+/* Animations for view switching */
+.app-view {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
