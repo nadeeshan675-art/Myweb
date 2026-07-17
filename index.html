@@ -89,8 +89,16 @@
         <!-- Top Header -->
         <header class="navbar navbar-expand navbar-dark bg-primary sticky-top px-3 shadow">
             <span class="navbar-brand fw-bold" id="brand-name">BMS App</span>
-            <div class="ms-auto d-flex align-items-center gap-3">
-                <div class="dropdown text-white">
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <!-- CLOUD SYNC BUTTONS -->
+                <button class="btn btn-success btn-sm" onclick="uploadToCloud()" title="Upload to Cloud (Google Sheets)">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> <span class="d-none d-sm-inline">Save Cloud</span>
+                </button>
+                <button class="btn btn-info btn-sm text-white" onclick="downloadFromCloud()" title="Download from Cloud">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> <span class="d-none d-sm-inline">Load Cloud</span>
+                </button>
+                
+                <div class="dropdown text-white ms-2">
                     <i class="fa-solid fa-bell position-relative fs-5 cursor-pointer" data-bs-toggle="dropdown">
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="noti-count" style="font-size: 10px;">0</span>
                     </i>
@@ -99,7 +107,7 @@
                         <li><hr class="dropdown-divider"></li>
                     </ul>
                 </div>
-                <span class="text-white small" id="user-display">Code: --</span>
+                <span class="text-white small d-none d-md-inline" id="user-display">Code: --</span>
                 <button class="btn btn-outline-light btn-sm" id="btn-logout"><i class="fa-solid fa-sign-out"></i></button>
             </div>
         </header>
@@ -136,11 +144,10 @@
                     </div>
                 </div>
 
-                <!-- NEW: SYNC DATA TO OTHER DEVICE SECTION -->
-                <div class="card p-3 shadow-sm border-0 mb-4 border-start border-primary border-4">
-                    <h5 class="fw-bold text-primary"><i class="fa-solid fa-mobile-screen-button me-2"></i>Link with other Phones (වෙනත් ෆෝන් සම්බන්ධ කිරීම)</h5>
-                    <p class="text-muted small mb-3">වෙනත් දුරකථනයකින් මෙම පද්ධතියට ලොග් වීමට අවශ්‍ය නම්, පහත බොත්තම ක්ලික් කර ලැබෙන ලින්ක් එක එම දුරකථනයට යවා විවෘත කරන්න.</p>
-                    <button class="btn btn-sm btn-primary align-self-start" onclick="generateSyncLink()"><i class="fa-solid fa-share-nodes me-2"></i>Generate Sync Link</button>
+                <!-- INFO: GOOGLE CLOUD SYNC -->
+                <div class="card p-3 shadow-sm border-0 mb-4 border-start border-success border-4">
+                    <h5 class="fw-bold text-success"><i class="fa-solid fa-cloud me-2"></i>Google Sheets Cloud Sync Active</h5>
+                    <p class="text-muted small mb-0">ඔබ ඇතුළත් කරන සියලුම දත්ත වෙනත් දුරකථන සමඟ බෙදා ගැනීමට ඉහළ ඇති <b>Save Cloud <i class="fa-solid fa-cloud-arrow-up"></i></b> බොත්තම ඔබන්න. වෙනත් දුරකථනයක දත්ත ලබා ගැනීමට <b>Load Cloud <i class="fa-solid fa-cloud-arrow-down"></i></b> බොත්තම ඔබන්න.</p>
                 </div>
 
                 <div class="card p-3 shadow-sm border-0 mb-4">
