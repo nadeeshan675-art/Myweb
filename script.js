@@ -47,7 +47,6 @@ document.getElementById('register-form')?.addEventListener('submit', (e) => {
     companies.push({ companyCode, companyName });
     localStorage.setItem('bms_companies', JSON.stringify(companies));
 
-    // Password එක btoa() මගින් encrypt කර සේව් කෙරේ
     users.push({ userCode, companyCode, name: adminName, username, password: btoa(password), role: 'Admin' });
     localStorage.setItem('bms_users', JSON.stringify(users));
 
@@ -56,7 +55,7 @@ document.getElementById('register-form')?.addEventListener('submit', (e) => {
     document.getElementById('login-company-code').value = companyCode;
 });
 
-// LOGIN LOGIC (නිවැරදි කරන ලද කොටස)
+// LOGIN LOGIC
 document.getElementById('login-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const companyCode = document.getElementById('login-company-code').value.trim();
@@ -64,9 +63,7 @@ document.getElementById('login-form')?.addEventListener('submit', (e) => {
     const username = document.getElementById('login-username').value.trim().toLowerCase();
     const password = document.getElementById('login-password').value;
 
-    // Login වීමේදී ඇතුළත් කරන Password එකද btoa() මගින් Encrypt කර Database එක සමඟ සැසඳිය යුතුය
     const hashedPassword = btoa(password);
-
     const users = JSON.parse(localStorage.getItem('bms_users'));
     const user = users.find(u => u.username === username && u.companyCode === companyCode && u.role === role && u.password === hashedPassword);
 
@@ -90,7 +87,7 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
     activeUser = null;
     document.getElementById('auth-section').classList.remove('d-none');
     document.getElementById('app-section').classList.add('d-none');
-    document.getElementById('login-form').reset(); // Form එක reset කෙරේ
+    document.getElementById('login-form').reset();
 });
 
 function applyRoleRestrictions() {
@@ -248,7 +245,7 @@ function deleteItem(id) {
     }
 }
 
-// Orders Workflow
+// Orders Workflow (UPDATED FOR PRINTING)
 function loadOrders() {
     const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
     const tableBody = document.getElementById('table-orders');
@@ -256,6 +253,13 @@ function loadOrders() {
 
     orders.forEach(o => {
         let actions = '';
+        
+        // Admin කෙනෙක්ට පමණක් Print බොත්තම දිස්වේ
+        let printButton = '';
+        if (activeUser.role === 'Admin') {
+            printButton = `<button class="btn btn-sm btn-outline-primary py-0 px-2 ms-1" onclick="printInvoice('${o.id}')"><i class="fa-solid fa-print"></i> Print</button>`;
+        }
+
         if (o.status === 'Pending') {
             if (activeUser.role === 'Admin') {
                 actions = `<button class="btn btn-sm btn-success py-0 px-2" onclick="approveOrder('${o.id}')">Approve</button> <button class="btn btn-sm btn-danger py-0 px-2" onclick="rejectOrder('${o.id}')">Reject</button>`;
@@ -265,7 +269,8 @@ function loadOrders() {
         } else {
             actions = `<span class="text-muted small">Processed</span>`;
         }
-        tableBody.innerHTML += `<tr><td><b>${o.orderNo}</b></td><td>${o.custName}</td><td>Rs. ${o.total.toFixed(2)}</td><td>${o.empName}</td><td><span class="badge bg-${o.status === 'Approved' ? 'success' : o.status === 'Pending' ? 'warning' : 'danger'}">${o.status}</span></td><td>${actions}</td></tr>`;
+
+        tableBody.innerHTML += `<tr><td><b>${o.orderNo}</b></td><td>${o.custName}</td><td>Rs. ${o.total.toFixed(2)}</td><td>${o.empName}</td><td><span class="badge bg-${o.status === 'Approved' ? 'success' : o.status === 'Pending' ? 'warning' : 'danger'}">${o.status}</span></td><td>${actions} ${printButton}</td></tr>`;
     });
 }
 
@@ -289,7 +294,24 @@ document.getElementById('form-order')?.addEventListener('submit', (e) => {
 
     const orderNo = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
     const orders = JSON.parse(localStorage.getItem('bms_orders'));
-    orders.push({ id: 'ORD-' + Date.now(), orderNo, companyCode: activeUser.companyCode, custId, custName: customer.name, itemCode, qty, unitPrice: item.sell, total: (item.sell * qty), empName: activeUser.name, payment, status: 'Pending' });
+    orders.push({ 
+        id: 'ORD-' + Date.now(), 
+        orderNo, 
+        companyCode: activeUser.companyCode, 
+        custId, 
+        custName: customer.name, 
+        custPhone: customer.phone,
+        custAddress: customer.address,
+        itemCode, 
+        itemName: item.name,
+        qty, 
+        unitPrice: item.sell, 
+        total: (item.sell * qty), 
+        empName: activeUser.name, 
+        payment, 
+        status: 'Pending',
+        date: new Date().toLocaleDateString()
+    });
     localStorage.setItem('bms_orders', JSON.stringify(orders));
 
     bootstrap.Modal.getInstance(document.getElementById('modal-order')).hide();
@@ -336,6 +358,125 @@ function rejectOrder(orderId) {
     }
 }
 
+// ================= NEW INVOICE PRINTING FUNCTION =================
+// මෙමගින් තෝරාගත් ඇණවුමේ Invoice එක නව Window එකක් හරහා Print කිරීමට සලස්වයි.
+
+function printInvoice(orderId) {
+    const orders = JSON.parse(localStorage.getItem('bms_orders'));
+    const order = orders.find(o => o.id === orderId);
+    const companies = JSON.parse(localStorage.getItem('bms_companies'));
+    const company = companies.find(c => c.companyCode === order.companyCode) || { companyName: "Sri Lankan BMS Client" };
+
+    if (!order) {
+        alert("Order not found!");
+        return;
+    }
+
+    // නව Print Window එකක් විවෘත කිරීම
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    
+    // Invoice Layout HTML කේතය
+    const invoiceHTML = `
+        <html>
+        <head>
+            <title>Invoice - ${order.orderNo}</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; margin: 40px; }
+                .invoice-header { display: flex; justify-content: space-between; border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 30px; }
+                .company-info h2 { margin: 0 0 5px 0; color: #007bff; }
+                .company-info p { margin: 2px 0; font-size: 14px; }
+                .invoice-title { text-align: right; }
+                .invoice-title h1 { margin: 0 0 10px 0; font-size: 28px; color: #555; }
+                .details-row { display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px; }
+                .details-box { width: 45%; }
+                .details-box h4 { border-bottom: 1px solid #ddd; margin: 0 0 8px 0; padding-bottom: 5px; color: #555; }
+                .details-box p { margin: 4px 0; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px; }
+                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+                th { background-color: #f8f9fa; color: #555; font-weight: bold; }
+                .text-right { text-align: right; }
+                .totals { float: right; width: 300px; font-size: 14px; }
+                .totals-row { display: flex; justify-content: space-between; padding: 6px 0; }
+                .grand-total { font-size: 18px; font-weight: bold; border-top: 2px solid #007bff; padding-top: 10px; color: #007bff; }
+                .footer { clear: both; text-align: center; font-size: 12px; color: #888; margin-top: 80px; border-top: 1px solid #eee; padding-top: 20px; }
+                @media print {
+                    .no-print { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="invoice-header">
+                <div class="company-info">
+                    <h2>${company.companyName}</h2>
+                    <p>Company Code: ${order.companyCode}</p>
+                    <p>Sri Lanka</p>
+                </div>
+                <div class="invoice-title">
+                    <h1>INVOICE</h1>
+                    <p><b>Invoice No:</b> ${order.orderNo}</p>
+                    <p><b>Date:</b> ${order.date || new Date().toLocaleDateString()}</p>
+                </div>
+            </div>
+
+            <div class="details-row">
+                <div class="details-box">
+                    <h4>Billed To (ගනුදෙනුකරු):</h4>
+                    <p><b>Name:</b> ${order.custName}</p>
+                    <p><b>Phone:</b> ${order.custPhone || 'N/A'}</p>
+                    <p><b>Address:</b> ${order.custAddress || 'N/A'}</p>
+                </div>
+                <div class="details-box">
+                    <h4>Order Information:</h4>
+                    <p><b>Prepared By:</b> ${order.empName} (Staff)</p>
+                    <p><b>Payment Mode:</b> ${order.payment}</p>
+                    <p><b>Order Status:</b> <span style="color: ${order.status === 'Approved' ? 'green' : 'orange'}">${order.status}</span></p>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item Description (භාණ්ඩය)</th>
+                        <th>Code</th>
+                        <th class="text-right">Unit Price</th>
+                        <th class="text-right">Quantity</th>
+                        <th class="text-right">Total (Rs.)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>${order.itemName || 'Product'}</b></td>
+                        <td>${order.itemCode}</td>
+                        <td class="text-right">Rs. ${order.unitPrice.toFixed(2)}</td>
+                        <td class="text-right">${order.qty}</td>
+                        <td class="text-right">Rs. ${order.total.toFixed(2)}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="totals">
+                <div class="totals-row">
+                    <span>Subtotal:</span>
+                    <span>Rs. ${order.total.toFixed(2)}</span>
+                </div>
+                <div class="totals-row grand-total">
+                    <span>Grand Total:</span>
+                    <span>Rs. ${order.total.toFixed(2)}</span>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>Thank you for your business! / ස්තූතියි!</p>
+                <p class="no-print"><button onclick="window.print()" style="background-color: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Print Document</button></p>
+            </div>
+        </body>
+        </html>
+    `;
+
+    printWindow.document.write(invoiceHTML);
+    printWindow.document.close();
+}
+
 // Staff / Employee Management
 function loadEmployees() {
     if (activeUser.role !== 'Admin') return;
@@ -360,7 +501,6 @@ document.getElementById('form-employee')?.addEventListener('submit', (e) => {
         return;
     }
 
-    // සේවකයා ඇතුළත් කිරීමේදීද Password එක btoa() වලින් Encrypt කර සේව් කෙරේ
     users.push({ userCode: 'EMP-' + Math.floor(10000 + Math.random() * 90000), companyCode: activeUser.companyCode, name, username, password: btoa(password), role: 'Employee' });
     localStorage.setItem('bms_users', JSON.stringify(users));
     bootstrap.Modal.getInstance(document.getElementById('modal-employee')).hide();
