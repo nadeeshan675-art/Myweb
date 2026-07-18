@@ -861,6 +861,7 @@
                     });
                     localStorage.setItem('bms_items', JSON.stringify(items));
 
+                    // FIX: Save customer outstanding updates properly to LocalStorage
                     if (payment === 'Credit') {
                         customer.balance = Number(customer.balance) + netTotal;
                         localStorage.setItem('bms_customers', JSON.stringify(customers));
@@ -886,7 +887,7 @@
             alert(isInstantApprove ? "Order Saved and Approved Instantly!" : "Order saved completely and sent to Admin Approval list!");
         }
 
-        // ================= NEW ORDER PREVIEW FUNCTION FOR ADMIN =================
+        // ================= PREVIEW FUNCTION FOR ADMIN =================
         function previewOrderDetails(orderId) {
             const orders = JSON.parse(localStorage.getItem('bms_orders'));
             const o = orders.find(x => x.id === orderId);
@@ -920,7 +921,6 @@
             document.getElementById('preview-discount').textContent = 'Rs. ' + Number(o.discount || 0).toFixed(2);
             document.getElementById('preview-net-total').textContent = 'Rs. ' + Number(o.total).toFixed(2);
 
-            // Add Contextual action inside footer preview modal
             const footer = document.getElementById('preview-footer-actions');
             footer.innerHTML = `<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>`;
             
@@ -1057,10 +1057,13 @@
                 }
                 order.status = 'Approved';
 
+                // FIX: Save customer balance accurately when Employee Pending order is approved by Admin
                 if (order.payment === 'Credit') {
                     const customers = JSON.parse(localStorage.getItem('bms_customers'));
                     const customer = customers.find(c => c.id === order.custId);
-                    if (customer) { customer.balance = Number(customer.balance) + order.total; }
+                    if (customer) { 
+                        customer.balance = Number(customer.balance) + Number(order.total); 
+                    }
                     localStorage.setItem('bms_customers', JSON.stringify(customers));
                 }
 
@@ -1212,7 +1215,6 @@
             orders.forEach(o => {
                 let act = '';
                 
-                // EVERYONE CAN PREVIEW SUBMITTED ITEMS AT ANY STATUS NOW
                 act += `<button class="btn btn-sm btn-outline-primary p-1 rounded me-1" onclick="previewOrderDetails('${o.id}')"><i class="fa-solid fa-eye"></i> Preview</button>`;
 
                 if (o.status === 'Pending') {
