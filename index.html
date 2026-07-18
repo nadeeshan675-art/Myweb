@@ -15,12 +15,12 @@
             --success-color: #198754;
             --warning-color: #ffc107;
             --danger-color: #dc3545;
+            --sidebar-width: 260px;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f9;
-            padding-bottom: 90px; 
         }
 
         .btn-modern {
@@ -32,6 +32,78 @@
             transform: translateY(-2px);
         }
 
+        /* Responsive Layout Settings */
+        .app-container {
+            display: flex;
+            min-vh-100;
+            flex-direction: column;
+        }
+
+        /* Sidebar View for PC */
+        .pc-sidebar {
+            width: var(--sidebar-width);
+            background-color: #ffffff;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 3px 0 15px rgba(0,0,0,0.05);
+            z-index: 1040;
+        }
+
+        .sidebar-logo {
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+            border-bottom: 1px solid #e3e6f0;
+            text-align: center;
+        }
+
+        .sidebar-menu {
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: #6c757d;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 500;
+            background: none;
+            border: none;
+            text-align: left;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .sidebar-item i {
+            font-size: 18px;
+            width: 25px;
+        }
+
+        .sidebar-item:hover, .sidebar-item.active {
+            background-color: #e8f2ff;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* Content Area Adjustments */
+        .main-content {
+            flex-grow: 1;
+            padding-top: 20px;
+        }
+
+        /* Mobile Bottom Nav Bar */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -68,6 +140,21 @@
         .nav-item.active {
             color: var(--primary-color);
             font-weight: bold;
+        }
+
+        /* Breakpoints for Mobile vs PC View */
+        @media (max-width: 991.98px) {
+            .pc-sidebar { display: none !important; }
+            .main-content { margin-left: 0 !important; padding-bottom: 90px; }
+            .bottom-nav { display: flex !important; }
+            .navbar { display: flex !important; }
+        }
+
+        @media (min-width: 992px) {
+            .pc-sidebar { display: flex !important; }
+            .main-content { margin-left: var(--sidebar-width) !important; padding-bottom: 30px; }
+            .bottom-nav { display: none !important; }
+            .navbar { padding-left: calc(var(--sidebar-width) + 15px) !important; }
         }
 
         .bg-gradient-primary { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
@@ -189,11 +276,37 @@
     </div>
 
     <!-- ================= MAIN APP SYSTEM ================= -->
-    <div id="app-section" class="d-none">
+    <div id="app-section" class="d-none app-container">
         
+        <!-- PC Sidebar (Hidden on Mobile) -->
+        <aside class="pc-sidebar">
+            <div class="sidebar-logo" id="pc-brand-name">BMS App</div>
+            <div class="sidebar-menu">
+                <button class="sidebar-item active side-nav-dashboard" onclick="switchView('dashboard')">
+                    <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
+                </button>
+                <button class="sidebar-item side-nav-customers" onclick="switchView('customers')">
+                    <i class="fa-solid fa-users"></i><span>Customers</span>
+                </button>
+                <button class="sidebar-item side-nav-items" onclick="switchView('items')">
+                    <i class="fa-solid fa-boxes-stacked"></i><span>Inventory</span>
+                </button>
+                <button class="sidebar-item side-nav-orders" onclick="switchView('orders')">
+                    <i class="fa-solid fa-file-invoice"></i><span>Orders Log</span>
+                </button>
+                <button class="sidebar-item side-nav-employees admin-only" onclick="switchView('employees')">
+                    <i class="fa-solid fa-user-gear"></i><span>Staff Mgt</span>
+                </button>
+            </div>
+            <div class="p-3 border-top bg-light text-center">
+                <span class="small text-muted d-block mb-2" id="pc-user-display">User: --</span>
+            </div>
+        </aside>
+
+        <!-- Top Header Navigation -->
         <header class="navbar navbar-expand navbar-dark bg-primary sticky-top px-3 shadow">
-            <span class="navbar-brand fw-bold" id="brand-name">BMS App</span>
-            <div class="ms-auto d-flex align-items-center gap-2">
+            <span class="navbar-brand fw-bold d-lg-none" id="brand-name">BMS App</span>
+            <div class="ms-auto d-flex align-items-center gap-3">
                 <div class="dropdown text-white">
                     <i class="fa-solid fa-bell position-relative fs-5 cursor-pointer" data-bs-toggle="dropdown" onclick="clearNotificationBadge()">
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="noti-count" style="font-size: 10px;">0</span>
@@ -203,48 +316,49 @@
                     </ul>
                 </div>
                 <span class="text-white small d-none d-md-inline" id="user-display">Code: --</span>
-                <button class="btn btn-outline-light btn-sm" id="btn-logout"><i class="fa-solid fa-sign-out"></i></button>
+                <button class="btn btn-outline-light btn-sm" id="btn-logout"><i class="fa-solid fa-sign-out"></i> Logout</button>
             </div>
         </header>
 
-        <main class="container py-4">
+        <!-- Main Workspace Area -->
+        <main class="main-content container-fluid px-md-4">
             
             <!-- Dashboard View -->
             <div id="view-dashboard" class="app-view">
-                <div class="row g-2 mb-3">
-                    <div class="col-6 col-md-3">
-                        <div class="card p-2 shadow-sm border-0 bg-gradient-primary text-white">
-                            <small style="font-size: 11px;">Total Sales</small>
-                            <h5 class="fw-bold mt-1" id="dash-sales" style="font-size: 15px;">Rs. 0.00</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-lg-3">
+                        <div class="card p-3 shadow-sm border-0 bg-gradient-primary text-white">
+                            <small class="text-uppercase tracking-wider opacity-75" style="font-size: 11px;">Total Sales</small>
+                            <h4 class="fw-bold mt-2" id="dash-sales">Rs. 0.00</h4>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card p-2 shadow-sm border-0 bg-gradient-success text-white">
-                            <small style="font-size: 11px;">Net Profit</small>
-                            <h5 class="fw-bold mt-1" id="dash-profit" style="font-size: 15px;">Rs. 0.00</h5>
+                    <div class="col-6 col-lg-3">
+                        <div class="card p-3 shadow-sm border-0 bg-gradient-success text-white">
+                            <small class="text-uppercase tracking-wider opacity-75" style="font-size: 11px;">Net Profit</small>
+                            <h4 class="fw-bold mt-2" id="dash-profit">Rs. 0.00</h4>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card p-2 shadow-sm border-0 bg-gradient-warning text-dark">
-                            <small style="font-size: 11px;">Active Orders</small>
-                            <h5 class="fw-bold mt-1" id="dash-orders" style="font-size: 15px;">0</h5>
+                    <div class="col-6 col-lg-3">
+                        <div class="card p-3 shadow-sm border-0 bg-gradient-warning text-dark">
+                            <small class="text-uppercase tracking-wider opacity-75" style="font-size: 11px;">Active Orders</small>
+                            <h4 class="fw-bold mt-2" id="dash-orders">0</h4>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card p-2 shadow-sm border-0 bg-gradient-danger text-white">
-                            <small style="font-size: 11px;">Outstanding Balance</small>
-                            <h5 class="fw-bold mt-1" id="dash-outstanding" style="font-size: 15px;">Rs. 0.00</h5>
+                    <div class="col-6 col-lg-3">
+                        <div class="card p-3 shadow-sm border-0 bg-gradient-danger text-white">
+                            <small class="text-uppercase tracking-wider opacity-75" style="font-size: 11px;">Outstanding Balance</small>
+                            <h4 class="fw-bold mt-2" id="dash-outstanding">Rs. 0.00</h4>
                         </div>
                     </div>
                 </div>
 
                 <div id="dashboard-overdue-alerts" class="mb-3"></div>
 
-                <div class="card p-3 shadow-sm border-0 mb-3">
-                    <h6 class="fw-bold mb-2"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Recent Orders Status</h6>
+                <div class="card p-4 shadow-sm border-0 mb-4">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Recent Orders Status</h6>
                     <div class="table-responsive">
-                        <table class="table table-sm" style="font-size: 12px;">
-                            <thead>
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Order #</th>
                                     <th>Amount</th>
@@ -263,10 +377,10 @@
                     <h5 class="fw-bold">Customers / ගනුදෙනුකරුවන්</h5>
                     <button class="btn btn-primary btn-sm admin-only" data-bs-toggle="modal" data-bs-target="#modal-customer"><i class="fa-solid fa-plus"></i> Add Customer</button>
                 </div>
-                <div class="card p-2 border-0 shadow-sm">
+                <div class="card p-3 border-0 shadow-sm">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle" style="font-size: 13px;">
-                            <thead>
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Name</th>
                                     <th>Phone</th>
@@ -287,10 +401,10 @@
                     <h5 class="fw-bold">Inventory / තොග</h5>
                     <button class="btn btn-primary btn-sm admin-only" data-bs-toggle="modal" data-bs-target="#modal-item"><i class="fa-solid fa-plus"></i> Add Item</button>
                 </div>
-                <div class="card p-2 border-0 shadow-sm">
+                <div class="card p-3 border-0 shadow-sm">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle" style="font-size: 13px;">
-                            <thead>
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Item</th>
                                     <th>Cost Price</th>
@@ -308,7 +422,7 @@
             <!-- Orders View -->
             <div id="view-orders" class="app-view d-none">
                 <div class="row g-4">
-                    <div class="col-12 col-lg-5">
+                    <div class="col-12 col-xl-5">
                         <div class="card order-card p-4">
                             <h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-cart-plus me-2"></i>New Live Bill Sheet</h5>
                             
@@ -347,9 +461,9 @@
 
                                 <!-- Cart Table Items display -->
                                 <div class="mb-3">
-                                    <label class="small fw-bold text-muted">Items List on current bill (එකතු කල බඩු ලිස්ට් එක):</label>
-                                    <div class="table-responsive bg-white border rounded p-1" style="max-height: 150px;">
-                                        <table class="table table-sm style-13 mb-0" style="font-size:12px;">
+                                    <label class="small fw-bold text-muted">Items List on current bill:</label>
+                                    <div class="table-responsive bg-white border rounded p-1" style="max-height: 180px;">
+                                        <table class="table table-sm mb-0" style="font-size:13px;">
                                             <thead><tr><th>Item</th><th>Qty</th><th>Subtotal</th><th></th></tr></thead>
                                             <tbody id="cart-items-body"></tbody>
                                         </table>
@@ -376,7 +490,7 @@
                                         <span>Gross Total:</span>
                                         <span id="order-gross-total">Rs. 0.00</span>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center small opacity-75 admin-only text-success">
+                                    <div class="d-flex justify-content-between align-items-center small admin-only text-success">
                                         <span>Discount Given:</span>
                                         <span id="order-discount-total">Rs. 0.00</span>
                                     </div>
@@ -396,11 +510,11 @@
                     </div>
 
                     <!-- Live Orders Log List -->
-                    <div class="col-12 col-lg-7">
+                    <div class="col-12 col-xl-7">
                         <div class="card order-card p-4">
                             <h5 class="fw-bold mb-3"><i class="fa-solid fa-clock-rotate-left me-2"></i>Order Registry Log</h5>
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle" style="font-size: 12px;">
+                                <table class="table table-hover align-middle" style="font-size: 13px;">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Order #</th>
@@ -425,10 +539,10 @@
                     <h5 class="fw-bold">Staff Management</h5>
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-employee"><i class="fa-solid fa-user-plus"></i> Add Staff</button>
                 </div>
-                <div class="card p-2 border-0 shadow-sm">
+                <div class="card p-3 border-0 shadow-sm">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle" style="font-size: 13px;">
-                            <thead>
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Name</th>
                                     <th>Username</th>
@@ -449,27 +563,27 @@
 
         </main>
 
-        <!-- Bottom Navigation Bar -->
-        <nav class="bottom-nav">
-            <button class="nav-item active" onclick="switchView('dashboard')">
+        <!-- Bottom Navigation Bar (Visible only on mobile devices) -->
+        <nav class="bottom-nav d-lg-none">
+            <button class="nav-item active bottom-nav-dashboard" onclick="switchView('dashboard')">
                 <i class="fa-solid fa-chart-pie"></i><span>Home</span>
             </button>
-            <button class="nav-item" onclick="switchView('customers')">
+            <button class="nav-item bottom-nav-customers" onclick="switchView('customers')">
                 <i class="fa-solid fa-users"></i><span>Customers</span>
             </button>
-            <button class="nav-item" onclick="switchView('items')">
+            <button class="nav-item bottom-nav-items" onclick="switchView('items')">
                 <i class="fa-solid fa-boxes-stacked"></i><span>Items</span>
             </button>
-            <button class="nav-item" onclick="switchView('orders')">
+            <button class="nav-item bottom-nav-orders" onclick="switchView('orders')">
                 <i class="fa-solid fa-file-invoice"></i><span>Orders</span>
             </button>
-            <button class="nav-item admin-only" onclick="switchView('employees')">
+            <button class="nav-item admin-only bottom-nav-employees" onclick="switchView('employees')">
                 <i class="fa-solid fa-user-gear"></i><span>Staff</span>
             </button>
         </nav>
     </div>
 
-    <!-- Modals -->
+    <!-- Modals (Customer Add, Reduce Balance, Previews, etc.) -->
     <div class="modal fade" id="modal-customer" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="form-customer" class="modal-content">
@@ -486,7 +600,6 @@
         </div>
     </div>
 
-    <!-- Modal for Manual Cash/Credit Reduce (Outstanding Settlement) -->
     <div class="modal fade" id="modal-reduce-balance" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="form-reduce-balance" class="modal-content">
@@ -498,7 +611,7 @@
                         <div id="reduce-cust-name" class="form-control bg-light fw-bold"></div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-danger">Current Outstanding (දැනට ඇති මුළු ණය):</label>
+                        <label class="form-label small fw-bold text-danger">Current Outstanding:</label>
                         <div id="reduce-cust-current" class="form-control bg-light text-danger fw-bold">Rs. 0.00</div>
                     </div>
                     <div class="mb-3">
@@ -514,7 +627,6 @@
         </div>
     </div>
 
-    <!-- NEW MODAL FOR ORDER PREVIEW (ADMIN ONLY) -->
     <div class="modal fade" id="modal-order-preview" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -861,7 +973,6 @@
                     });
                     localStorage.setItem('bms_items', JSON.stringify(items));
 
-                    // FIX: Save customer outstanding updates properly to LocalStorage
                     if (payment === 'Credit') {
                         customer.balance = Number(customer.balance) + netTotal;
                         localStorage.setItem('bms_customers', JSON.stringify(customers));
@@ -887,7 +998,6 @@
             alert(isInstantApprove ? "Order Saved and Approved Instantly!" : "Order saved completely and sent to Admin Approval list!");
         }
 
-        // ================= PREVIEW FUNCTION FOR ADMIN =================
         function previewOrderDetails(orderId) {
             const orders = JSON.parse(localStorage.getItem('bms_orders'));
             const o = orders.find(x => x.id === orderId);
@@ -1008,23 +1118,21 @@
                     <div style="width: 100%; display: flex; justify-content: flex-end;">
                         <table style="width: 340px; font-size: 13px; line-height: 1.8;">
                             <tr>
-                                <td>Gross Total (ඩිස්කවුන්ට් නැතුව එකතුව):</td>
+                                <td>Gross Total:</td>
                                 <td style="text-align: right; font-weight: bold;">Rs. ${(o.grossTotal || o.total).toFixed(2)}</td>
                             </tr>
                             <tr style="color: red;">
-                                <td>Total Discount (ලබා දුන් ඩිස්කවුන්ට්):</td>
+                                <td>Total Discount:</td>
                                 <td style="text-align: right; font-weight: bold;">- Rs. ${overallDiscount.toFixed(2)}</td>
                             </tr>
                             <tr style="border-top: 1px solid #000; font-size: 15px;">
-                                <td><b>Net Total (ඩිස්කවුන්ට් දාලා එකතුව):</b></td>
+                                <td><b>Net Total:</b></td>
                                 <td style="text-align: right; font-weight: bold; border-bottom: 4px double #000; padding-top: 5px;">Rs. ${o.total.toFixed(2)}</td>
                             </tr>
                         </table>
                     </div>
-                    
-                    <div style="text-align: center; font-size: 12px; margin-top: 30px; letter-spacing: 0.5px;">
-                        Thank You For Business With Us!<br>
-                        <small style="color: #555;">BMS Live Cloud Synchronized System Receipt</small>
+                    <div style="text-align: center; font-size: 12px; margin-top: 30px;">
+                        Thank You For Business With Us!
                     </div>
                 </div>
             `;
@@ -1057,7 +1165,6 @@
                 }
                 order.status = 'Approved';
 
-                // FIX: Save customer balance accurately when Employee Pending order is approved by Admin
                 if (order.payment === 'Credit') {
                     const customers = JSON.parse(localStorage.getItem('bms_customers'));
                     const customer = customers.find(c => c.id === order.custId);
@@ -1214,9 +1321,7 @@
             tableBody.innerHTML = '';
             orders.forEach(o => {
                 let act = '';
-                
                 act += `<button class="btn btn-sm btn-outline-primary p-1 rounded me-1" onclick="previewOrderDetails('${o.id}')"><i class="fa-solid fa-eye"></i> Preview</button>`;
-
                 if (o.status === 'Pending') {
                     if(activeUser.role === 'Admin') {
                         act += `<button class="btn btn-sm btn-success p-1 rounded btn-modern me-1" onclick="approveOrder('${o.id}')">Approve</button>`;
@@ -1226,11 +1331,9 @@
                 } else {
                     act += `<button class="btn btn-sm btn-outline-dark p-1 rounded me-1" onclick="printInvoiceReceipt('${o.id}')"><i class="fa-solid fa-print"></i> Print</button>`;
                 }
-
                 if(activeUser.role === 'Admin') {
                     act += `<button class="btn btn-sm btn-danger p-1 rounded" onclick="deleteOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button>`;
                 }
-
                 tableBody.innerHTML += `<tr><td><b>${o.orderNo}</b><br><small class="text-muted">By: ${o.empName}</small></td><td>${o.custName}</td><td>Rs. ${o.total.toFixed(2)}</td><td>${o.payment}</td><td><span class="badge bg-${o.status==='Approved'?'success':'warning'}">${o.status}</span></td><td>${act}</td></tr>`;
             });
         }
@@ -1291,9 +1394,16 @@
             const targetView = document.getElementById('view-' + viewName);
             if(targetView) targetView.classList.remove('d-none');
             
+            // Sync Mobile Nav active state
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = Array.from(document.querySelectorAll('.nav-item')).find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(viewName));
-            if(activeBtn) activeBtn.classList.add('active');
+            const activeMobileBtn = document.querySelector('.bottom-nav-' + viewName);
+            if(activeMobileBtn) activeMobileBtn.classList.add('active');
+
+            // Sync PC Sidebar active state
+            document.querySelectorAll('.sidebar-item').forEach(btn => btn.classList.remove('active'));
+            const activePcBtn = document.querySelector('.side-nav-' + viewName);
+            if(activePcBtn) activePcBtn.classList.add('active');
+
             sessionStorage.setItem('bms_current_view', viewName);
         }
 
@@ -1347,7 +1457,12 @@
                 sessionStorage.setItem('bms_active_user', JSON.stringify(user));
                 document.getElementById('auth-section').classList.add('d-none');
                 document.getElementById('app-section').classList.remove('d-none');
+                
+                // Displaying Company Brand
                 document.getElementById('brand-name').textContent = "BMS - " + companyCode;
+                document.getElementById('pc-brand-name').textContent = "BMS - " + companyCode;
+                document.getElementById('pc-user-display').innerHTML = `User: <b>${user.name}</b> (${role})`;
+                
                 applyRoleRestrictions(); loadAllData(); checkOverdueCreditPeriods(); switchView('dashboard'); startLiveUpdateLoop();
             } else { alert("Authentication Invalid!"); }
         });
@@ -1405,9 +1520,13 @@
                 document.getElementById('auth-section').classList.add('d-none');
                 document.getElementById('app-section').classList.remove('d-none');
                 document.getElementById('brand-name').textContent = "BMS - " + activeUser.companyCode;
+                document.getElementById('pc-brand-name').textContent = "BMS - " + activeUser.companyCode;
+                document.getElementById('pc-user-display').innerHTML = `User: <b>${activeUser.name}</b>`;
+                
                 applyRoleRestrictions(); loadAllData(); checkOverdueCreditPeriods(); switchView(sessionStorage.getItem('bms_current_view') || 'dashboard'); startLiveUpdateLoop();
             }
         });
     </script>
 </body>
 </html>
+
