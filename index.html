@@ -35,7 +35,7 @@
         /* Responsive Layout Settings */
         .app-container {
             display: flex;
-            min-vh-100;
+            min-height: 100vh;
             flex-direction: column;
         }
 
@@ -278,7 +278,7 @@
     <!-- ================= MAIN APP SYSTEM ================= -->
     <div id="app-section" class="d-none app-container">
         
-        <!-- PC Sidebar (Hidden on Mobile) -->
+        <!-- PC Sidebar -->
         <aside class="pc-sidebar">
             <div class="sidebar-logo" id="pc-brand-name">BMS App</div>
             <div class="sidebar-menu">
@@ -427,7 +427,6 @@
                             <h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-cart-plus me-2"></i>New Live Bill Sheet</h5>
                             
                             <form id="form-order-modern">
-                                <!-- Search & Select Customer -->
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold">1. Select/Search Customer</label>
                                     <input type="text" id="search-customer-input" class="form-control form-input-custom mb-1" placeholder="Type name to search customer..." oninput="filterCustomerDropdown()">
@@ -439,7 +438,6 @@
 
                                 <hr>
 
-                                <!-- Add Items To Cart Sub-Form -->
                                 <div class="p-3 bg-light rounded-3 mb-3">
                                     <label class="form-label small fw-semibold">2. Add Item to This Bill</label>
                                     <input type="text" id="search-item-input" class="form-control form-input-custom mb-1" placeholder="Type code/name to search item..." oninput="filterItemDropdown()">
@@ -459,7 +457,6 @@
                                     <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2 fw-bold" onclick="addItemToCart()"><i class="fa-solid fa-plus-circle"></i> Add To Sheet</button>
                                 </div>
 
-                                <!-- Cart Table Items display -->
                                 <div class="mb-3">
                                     <label class="small fw-bold text-muted">Items List on current bill:</label>
                                     <div class="table-responsive bg-white border rounded p-1" style="max-height: 180px;">
@@ -479,7 +476,6 @@
                                     </select>
                                 </div>
 
-                                <!-- Admin Only Discount Section -->
                                 <div class="mb-3 admin-only">
                                     <label class="form-label small fw-bold text-success">Discount Amount (Admin Only)</label>
                                     <input type="number" id="order-discount" class="form-control" value="0" min="0" oninput="renderCartTable()">
@@ -509,7 +505,6 @@
                         </div>
                     </div>
 
-                    <!-- Live Orders Log List -->
                     <div class="col-12 col-xl-7">
                         <div class="card order-card p-4">
                             <h5 class="fw-bold mb-3"><i class="fa-solid fa-clock-rotate-left me-2"></i>Order Registry Log</h5>
@@ -583,7 +578,7 @@
         </nav>
     </div>
 
-    <!-- Modals (Customer Add, Reduce Balance, Previews, etc.) -->
+    <!-- Modals -->
     <div class="modal fade" id="modal-customer" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="form-customer" class="modal-content">
@@ -603,7 +598,7 @@
     <div class="modal fade" id="modal-reduce-balance" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="form-reduce-balance" class="modal-content">
-                <div class="modal-header"><h5>Reduce Customer Outstanding (මුදල් පියවීම)</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header"><h5>Reduce Customer Outstanding</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
                     <input type="hidden" id="reduce-cust-id">
                     <div class="mb-3">
@@ -615,7 +610,7 @@
                         <div id="reduce-cust-current" class="form-control bg-light text-danger fw-bold">Rs. 0.00</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-success">Amount Received / Paid (ලැබුණු මුදල)</label>
+                        <label class="form-label small fw-bold text-success">Amount Received / Paid</label>
                         <input type="number" id="reduce-amount" class="form-control form-input-custom" required min="1" placeholder="Enter LKR amount to deduct">
                     </div>
                 </div>
@@ -642,7 +637,7 @@
                         <div class="col-6"><b>Date:</b> <span id="preview-order-date">--</span></div>
                     </div>
                     
-                    <label class="fw-bold small text-muted mb-1">Items List / බඩු ලැයිස්තුව:</label>
+                    <label class="fw-bold small text-muted mb-1">Items List:</label>
                     <div class="table-responsive border rounded mb-3">
                         <table class="table table-sm table-striped mb-0" style="font-size: 13px;">
                             <thead class="table-dark">
@@ -707,7 +702,6 @@
         </div>
     </div>
 
-    <!-- Hidden Invoice Print Area -->
     <div id="print-area" style="display: none;"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1394,12 +1388,10 @@
             const targetView = document.getElementById('view-' + viewName);
             if(targetView) targetView.classList.remove('d-none');
             
-            // Sync Mobile Nav active state
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
             const activeMobileBtn = document.querySelector('.bottom-nav-' + viewName);
             if(activeMobileBtn) activeMobileBtn.classList.add('active');
 
-            // Sync PC Sidebar active state
             document.querySelectorAll('.sidebar-item').forEach(btn => btn.classList.remove('active'));
             const activePcBtn = document.querySelector('.side-nav-' + viewName);
             if(activePcBtn) activePcBtn.classList.add('active');
@@ -1458,7 +1450,6 @@
                 document.getElementById('auth-section').classList.add('d-none');
                 document.getElementById('app-section').classList.remove('d-none');
                 
-                // Displaying Company Brand
                 document.getElementById('brand-name').textContent = "BMS - " + companyCode;
                 document.getElementById('pc-brand-name').textContent = "BMS - " + companyCode;
                 document.getElementById('pc-user-display').innerHTML = `User: <b>${user.name}</b> (${role})`;
@@ -1529,4 +1520,3 @@
     </script>
 </body>
 </html>
-
