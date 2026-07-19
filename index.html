@@ -84,7 +84,7 @@
                     </div>
                 </div>
                 <div class="text-end mb-3">
-                    <a href="#" class="small text-decoration-none" onclick="showRecoveryForm()">Forgot Code or Password?</a>
+                    <a href="#" class="small text-decoration-none" onclick="showRecoveryForm(event)">Forgot Code or Password?</a>
                 </div>
                 <button type="submit" class="btn btn-primary w-100 py-2 btn-modern">Log In (Cloud Sync)</button>
             </form>
@@ -130,7 +130,7 @@
                     <input type="email" id="recovery-email" class="form-control" placeholder="example@gmail.com">
                 </div>
                 <button type="button" class="btn btn-danger w-100 btn-modern mb-2" onclick="handleRecovery()">Find My Account Info</button>
-                <button type="button" class="btn btn-light w-100 btn-sm" onclick="hideRecoveryForm()">Back to Login</button>
+                <button type="button" class="btn btn-light w-100 btn-sm" onclick="hideRecoveryForm(event)">Back to Login</button>
                 <div id="recovery-result" class="mt-3 p-3 bg-light rounded d-none border" style="font-size: 13px;"></div>
             </div>
 
@@ -390,11 +390,10 @@
     <!-- Bootstrap & Supabase Logic -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // === ඔයා ලබාදුන් නිවැරදි Supabase දත්ත ===
+        // === Supabase Credentials ===
         const SUPABASE_URL = "https://chrnonutnjhynzrmqkbb.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNocm5vbnV0bmpoeW56cm1xa2JiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MjUyNjUsImV4cCI6MjEwMDAwMTI2NX0.k5VAt9wSj5V3nvitnG7kd4YiT0PX6EhxWvDhUNsn6VU"; 
         
-        // Supabase Client නිවැරදිව ආරම්භ කිරීම (FIXED REGISTER ISSUE)
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let activeUser = null;
@@ -414,31 +413,38 @@
             icon.className = input.type === "password" ? "fa-solid fa-eye" : "fa-solid fa-eye-slash";
         }
 
-        function showRecoveryForm() {
+        function showRecoveryForm(event) {
+            if(event) event.preventDefault();
             document.getElementById('login-form').classList.add('d-none');
+            document.getElementById('register-form').classList.add('d-none');
             document.getElementById('recovery-section').classList.remove('d-none');
         }
 
-        function hideRecoveryForm() {
+        function hideRecoveryForm(event) {
+            if(event) event.preventDefault();
             document.getElementById('login-form').classList.remove('d-none');
             document.getElementById('recovery-section').classList.add('d-none');
             document.getElementById('recovery-result').classList.add('d-none');
+            document.getElementById('btn-login-tab').click();
         }
 
-        document.getElementById('btn-login-tab')?.addEventListener('click', () => {
-            document.getElementById('btn-login-tab').classList.add('active');
-            document.getElementById('btn-register-tab').classList.remove('active');
-            document.getElementById('login-form').classList.remove('d-none');
-            document.getElementById('register-form').classList.add('d-none');
-            hideRecoveryForm();
-        });
+        // JS Listeners safely bound after DOM load
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById('btn-login-tab')?.addEventListener('click', () => {
+                document.getElementById('btn-login-tab').classList.add('active');
+                document.getElementById('btn-register-tab').classList.remove('active');
+                document.getElementById('login-form').classList.remove('d-none');
+                document.getElementById('register-form').classList.add('d-none');
+                document.getElementById('recovery-section').classList.add('d-none');
+            });
 
-        document.getElementById('btn-register-tab')?.addEventListener('click', () => {
-            document.getElementById('btn-login-tab').classList.remove('active');
-            document.getElementById('btn-register-tab').classList.add('active');
-            document.getElementById('login-form').classList.add('d-none');
-            document.getElementById('register-form').classList.remove('d-none');
-            hideRecoveryForm();
+            document.getElementById('btn-register-tab')?.addEventListener('click', () => {
+                document.getElementById('btn-login-tab').classList.remove('active');
+                document.getElementById('btn-register-tab').classList.add('active');
+                document.getElementById('login-form').classList.add('d-none');
+                document.getElementById('register-form').classList.remove('d-none');
+                document.getElementById('recovery-section').classList.add('d-none');
+            });
         });
 
         // Cloud Core Sync Functions
@@ -461,7 +467,7 @@
             }
         }
 
-        // Account Recovery Logic (NEW OPTION)
+        // Account Recovery Logic
         async function handleRecovery() {
             const emailInput = document.getElementById('recovery-email').value.trim().toLowerCase();
             const resultDiv = document.getElementById('recovery-result');
@@ -472,7 +478,6 @@
             resultDiv.className = "mt-3 p-3 bg-light rounded border text-center";
             resultDiv.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i> Searching Cloud Data...`;
 
-            // Get all rows from Supabase to check the email inside jsonb
             const { data, error } = await supabase.from('bms_cloud_data').select('*');
             
             if (error || !data) {
@@ -483,14 +488,16 @@
 
             let foundAccount = null;
             for (let row of data) {
-                const adminUser = row.db_data.users.find(u => u.role === 'Admin' && u.email === emailInput);
-                if (adminUser) {
-                    foundAccount = {
-                        companyCode: row.company_code,
-                        username: adminUser.username,
-                        password: atob(adminUser.password) // Decrypting password for recovery display
-                    };
-                    break;
+                if (row.db_data && row.db_data.users) {
+                    const adminUser = row.db_data.users.find(u => u.role === 'Admin' && u.email === emailInput);
+                    if (adminUser) {
+                        foundAccount = {
+                            companyCode: row.company_code,
+                            username: adminUser.username,
+                            password: atob(adminUser.password)
+                        };
+                        break;
+                    }
                 }
             }
 
@@ -522,7 +529,6 @@
 
             const companyCode = 'CO-' + Math.floor(1000 + Math.random() * 9000);
             
-            // Check if company code exists on Supabase globally
             const { data, error } = await supabase.from('bms_cloud_data').select('company_code').eq('company_code', companyCode);
             if (data && data.length > 0) { alert("Registration clash. Please try again."); return; }
 
@@ -538,7 +544,7 @@
                 return; 
             }
 
-            alert(`Global Company Account Created!\nCompany Code: ${companyCode}\nShare this code with your employees!\n\nWrite this down or use your Email to recover anytime.`);
+            alert(`Global Company Account Created!\nCompany Code: ${companyCode}\nShare this code with your employees!`);
             document.getElementById('btn-login-tab').click();
             document.getElementById('login-company-code').value = companyCode;
         });
@@ -551,7 +557,6 @@
             const password = document.getElementById('login-password').value;
             const hashedPassword = btoa(password);
 
-            // Fetch data from Supabase for this specific company
             const { data, error } = await supabase.from('bms_cloud_data').select('db_data').eq('company_code', companyCode).single();
             
             if (error || !data) { alert("Invalid Company Code!"); return; }
@@ -571,15 +576,12 @@
                 applyRoleRestrictions();
                 renderAllData();
                 switchView('dashboard');
-                
-                // Initialize Supabase Realtime Subscriptions (NEW FEATURE: INSTANT REFRESH)
                 initRealtimeSync(companyCode);
             } else {
                 alert("Incorrect Username or Password!");
             }
         });
 
-        // Instant Live Updates using WebSockets
         function initRealtimeSync(companyCode) {
             supabase
                 .channel('schema-db-changes')
@@ -620,7 +622,7 @@
 
         // ================= BUSINESS LOGIC =================
         function updateDashboardMetrics() {
-            const approvedOrders = dbData.orders.filter(o => o.status === 'Approved');
+            const approvedOrders = dbData.orders ? dbData.orders.filter(o => o.status === 'Approved') : [];
             const totalSales = approvedOrders.reduce((sum, o) => sum + o.total, 0);
 
             let netProfit = 0;
@@ -629,28 +631,32 @@
                 if (matchingItem) netProfit += ((ord.unitPrice - matchingItem.cost) * ord.qty);
             });
 
-            const outstanding = dbData.customers.reduce((sum, c) => sum + Number(c.balance), 0);
+            const outstanding = dbData.customers ? dbData.customers.reduce((sum, c) => sum + Number(c.balance), 0) : 0;
 
             document.getElementById('dash-sales').textContent = 'Rs. ' + totalSales.toFixed(2);
             document.getElementById('dash-profit').textContent = 'Rs. ' + netProfit.toFixed(2);
-            document.getElementById('dash-orders').textContent = dbData.orders.length;
+            document.getElementById('dash-orders').textContent = dbData.orders ? dbData.orders.length : 0;
             document.getElementById('dash-outstanding').textContent = 'Rs. ' + outstanding.toFixed(2);
 
             const tblDash = document.getElementById('dash-sales-table');
             tblDash.innerHTML = '';
-            dbData.orders.slice(-5).reverse().forEach(o => {
-                tblDash.innerHTML += `<tr><td>${o.orderNo}</td><td>Rs. ${o.total.toFixed(2)}</td><td><span class="badge bg-${o.status === 'Approved' ? 'success' : o.status === 'Pending' ? 'warning' : 'danger'}">${o.status}</span></td></tr>`;
-            });
+            if(dbData.orders) {
+                dbData.orders.slice(-5).reverse().forEach(o => {
+                    tblDash.innerHTML += `<tr><td>${o.orderNo}</td><td>Rs.${o.total.toFixed(2)}</td><td><span class="badge bg-${o.status === 'Approved' ? 'success' : o.status === 'Pending' ? 'warning' : 'danger'}">${o.status}</span></td></tr>`;
+                });
+            }
 
             const alertsDiv = document.getElementById('dash-alerts');
             alertsDiv.innerHTML = '';
-            dbData.items.forEach(i => {
-                if (i.qty <= i.lowStock) alertsDiv.innerHTML += `<div>⚠️ Low Stock: <b>${i.name}</b> (${i.qty} left)</div>`;
-            });
+            if(dbData.items) {
+                dbData.items.forEach(i => {
+                    if (i.qty <= i.lowStock) alertsDiv.innerHTML += `<div>⚠️ Low Stock: <b>${i.name}</b> (${i.qty} left)</div>`;
+                });
+            }
 
-            if (activeUser.role === 'Admin') {
-                document.getElementById('rep-inv-cost').textContent = 'Rs. ' + dbData.items.reduce((sum, i) => sum + (i.cost * i.qty), 0).toFixed(2);
-                document.getElementById('rep-inv-sell').textContent = 'Rs. ' + dbData.items.reduce((sum, i) => sum + (i.sell * i.qty), 0).toFixed(2);
+            if (activeUser && activeUser.role === 'Admin') {
+                document.getElementById('rep-inv-cost').textContent = 'Rs. ' + (dbData.items ? dbData.items.reduce((sum, i) => sum + (i.cost * i.qty), 0).toFixed(2) : '0.00');
+                document.getElementById('rep-inv-sell').textContent = 'Rs. ' + (dbData.items ? dbData.items.reduce((sum, i) => sum + (i.sell * i.qty), 0).toFixed(2) : '0.00');
                 document.getElementById('rep-total-orders').textContent = approvedOrders.length;
                 document.getElementById('rep-outstanding').textContent = 'Rs. ' + outstanding.toFixed(2);
             }
@@ -663,10 +669,12 @@
             tableBody.innerHTML = '';
             orderCustomerSelect.innerHTML = '<option value="">-- Customer --</option>';
 
-            dbData.customers.forEach(c => {
-                tableBody.innerHTML += `<tr><td><b>${c.name}</b></td><td>${c.phone}</td><td class="text-danger fw-bold">Rs. ${Number(c.balance).toFixed(2)}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer('${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
-                orderCustomerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-            });
+            if(dbData.customers) {
+                dbData.customers.forEach(c => {
+                    tableBody.innerHTML += `<tr><td><b>${c.name}</b></td><td>${c.phone}</td><td class="text-danger fw-bold">Rs. ${Number(c.balance).toFixed(2)}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer('${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                    orderCustomerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+            }
         }
 
         document.getElementById('form-customer')?.addEventListener('submit', async (e) => {
@@ -697,11 +705,13 @@
             tableBody.innerHTML = '';
             orderItemSelect.innerHTML = '<option value="">-- Item --</option>';
 
-            dbData.items.forEach(i => {
-                const isLow = i.qty <= i.lowStock;
-                tableBody.innerHTML += `<tr><td><b>${i.name}</b><br><small class="text-muted">${i.code}</small></td><td>Rs. ${Number(i.sell).toFixed(2)}</td><td><span class="badge bg-${isLow ? 'danger' : 'success'}">${i.qty}</span></td><td class="admin-only"><button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${i.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
-                orderItemSelect.innerHTML += `<option value="${i.code}">${i.name} (Rs. ${i.sell})</option>`;
-            });
+            if(dbData.items) {
+                dbData.items.forEach(i => {
+                    const isLow = i.qty <= i.lowStock;
+                    tableBody.innerHTML += `<tr><td><b>${i.name}</b><br><small class="text-muted">${i.code}</small></td><td>Rs. ${Number(i.sell).toFixed(2)}</td><td><span class="badge bg-${isLow ? 'danger' : 'success'}">${i.qty}</span></td><td class="admin-only"><button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${i.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                    orderItemSelect.innerHTML += `<option value="${i.code}">${i.name} (Rs.${i.sell})</option>`;
+                });
+            }
         }
 
         document.getElementById('form-item')?.addEventListener('submit', async (e) => {
@@ -730,10 +740,12 @@
         function renderOrders() {
             const tableBody = document.getElementById('table-orders');
             tableBody.innerHTML = '';
-            dbData.orders.forEach(o => {
-                let actions = o.status === 'Pending' ? (activeUser.role === 'Admin' ? `<button class="btn btn-xs btn-success py-0 px-1" onclick="approveOrder('${o.id}')">Approve</button>` : `<span class="text-muted small">Pending</span>`) : `<span class="text-muted small">Done</span>`;
-                tableBody.innerHTML += `<tr><td><b>${o.orderNo}</b></td><td>${o.custName}</td><td>Rs. ${o.total.toFixed(0)}</td><td><span class="badge bg-${o.status === 'Approved' ? 'success' : o.status === 'Pending' ? 'warning' : 'danger'}">${o.status}</span></td><td>${actions}</td></tr>`;
-            });
+            if(dbData.orders) {
+                dbData.orders.forEach(o => {
+                    let actions = o.status === 'Pending' ? (activeUser.role === 'Admin' ? `<button class="btn btn-xs btn-success py-0 px-1" onclick="approveOrder('${o.id}')">Approve</button>` : `<span class="text-muted small">Pending</span>`) : `<span class="text-muted small">Done</span>`;
+                    tableBody.innerHTML += `<tr><td><b>${o.orderNo}</b></td><td>${o.custName}</td><td>Rs. ${o.total.toFixed(0)}</td><td><span class="badge bg-${o.status === 'Approved' ? 'success' : o.status === 'Pending' ? 'warning' : 'danger'}">${o.status}</span></td><td>${actions}</td></tr>`;
+                });
+            }
         }
 
         document.getElementById('form-order')?.addEventListener('submit', async (e) => {
@@ -784,9 +796,11 @@
             if (activeUser.role !== 'Admin') return;
             const tableBody = document.getElementById('table-employees');
             tableBody.innerHTML = '';
-            dbData.users.forEach(u => {
-                tableBody.innerHTML += `<tr><td><b>${u.name}</b></td><td>${u.username}</td><td><span class="badge bg-dark">${u.role}</span></td><td>${u.role !== 'Admin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee('${u.userCode}')"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`;
-            });
+            if(dbData.users) {
+                dbData.users.forEach(u => {
+                    tableBody.innerHTML += `<tr><td><b>${u.name}</b></td><td>${u.username}</td><td><span class="badge bg-dark">${u.role}</span></td><td>${u.role !== 'Admin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee('${u.userCode}')"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`;
+                });
+            }
         }
 
         document.getElementById('form-employee')?.addEventListener('submit', async (e) => {
@@ -812,10 +826,10 @@
         }
 
         function renderNotifications() {
-            document.getElementById('noti-count').textContent = dbData.notifications.length;
+            document.getElementById('noti-count').textContent = dbData.notifications ? dbData.notifications.length : 0;
             const list = document.getElementById('noti-list');
             list.innerHTML = '<li><h6 class="dropdown-header">Notifications</h6></li><li><hr class="dropdown-divider"></li>';
-            if (dbData.notifications.length === 0) list.innerHTML += `<li class="p-2 text-center text-muted small">No Alerts!</li>`;
+            if (!dbData.notifications || dbData.notifications.length === 0) list.innerHTML += `<li class="p-2 text-center text-muted small">No Alerts!</li>`;
             else {
                 dbData.notifications.slice(-5).reverse().forEach(n => {
                     list.innerHTML += `<li class="p-2 border-bottom"><span class="text-${n.type} small d-block"><b>${n.message}</b></span></li>`;
@@ -825,14 +839,14 @@
 
         // Reports Export
         function downloadSalesReport() {
-            if(dbData.orders.length === 0) { alert("No data!"); return; }
+            if(!dbData.orders || dbData.orders.length === 0) { alert("No data!"); return; }
             let csv = "data:text/csv;charset=utf-8,Order No,Customer,Total,Status\n";
             dbData.orders.forEach(o => csv += `${o.orderNo},${o.custName},${o.total},${o.status}\n`);
             triggerDownload(csv, "Sales_Report.csv");
         }
 
         function downloadInventoryReport() {
-            if(dbData.items.length === 0) { alert("No data!"); return; }
+            if(!dbData.items || dbData.items.length === 0) { alert("No data!"); return; }
             let csv = "data:text/csv;charset=utf-8,Code,Name,Cost,Selling,Qty\n";
             dbData.items.forEach(i => csv += `${i.code},${i.name},${i.cost},${i.sell},${i.qty}\n`);
             triggerDownload(csv, "Inventory_Report.csv");
