@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sri Lankan Business Management System (BMS) - Offline Edition</title>
+    <title>Sri Lankan Business Management System (BMS) - Supabase Cloud</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome for Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         :root {
@@ -16,61 +18,27 @@
             --warning-color: #ffc107;
             --danger-color: #dc3545;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f9;
-            padding-bottom: 60px; /* For bottom navigation */
+            padding-bottom: 60px;
         }
-
-        .btn-modern {
-            border-radius: 10px;
-            font-weight: bold;
-        }
-
+        .btn-modern { border-radius: 10px; font-weight: bold; }
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background-color: #ffffff;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            z-index: 1030;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
+            background-color: #ffffff; display: flex; justify-content: space-around;
+            align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1030;
         }
-
         .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 11px;
-            background: none;
-            border: none;
-            padding: 5px;
-            flex: 1;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #6c757d; text-decoration: none; font-size: 11px; background: none; border: none; padding: 5px; flex: 1;
         }
-
-        .nav-item i {
-            font-size: 20px;
-            margin-bottom: 2px;
-        }
-
-        .nav-item.active {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
+        .nav-item i { font-size: 20px; margin-bottom: 2px; }
+        .nav-item.active { color: var(--primary-color); font-weight: bold; }
         .bg-gradient-primary { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
         .bg-gradient-success { background: linear-gradient(135deg, #198754, #146c43); }
         .bg-gradient-warning { background: linear-gradient(135deg, #ffc107, #ffca2c); }
         .bg-gradient-danger { background: linear-gradient(135deg, #dc3545, #b02a37); }
-
         .cursor-pointer { cursor: pointer; }
     </style>
 </head>
@@ -80,9 +48,9 @@
     <div id="auth-section" class="container d-flex justify-content-center align-items-center min-vh-100">
         <div class="card p-4 shadow-lg w-100" style="max-width: 450px; border-radius: 20px;">
             <div class="text-center mb-4">
-                <i class="fa-solid fa-file-invoice-dollar fa-3x text-primary mb-2"></i>
-                <h3 class="fw-bold">BMS Sri Lanka</h3>
-                <p class="text-muted">ව්‍යාපාර කළමනාකරණ පද්ධතිය</p>
+                <i class="fa-solid fa-cloud-bolt fa-3x text-primary mb-2"></i>
+                <h3 class="fw-bold">BMS Cloud System</h3>
+                <p class="text-muted">Supabase Realtime ව්‍යාපාර කළමනාකරණය</p>
                 <div class="btn-group w-100 mb-3" role="group">
                     <button type="button" class="btn btn-outline-primary active" id="btn-login-tab">Log In</button>
                     <button type="button" class="btn btn-outline-primary" id="btn-register-tab">Register Admin</button>
@@ -115,7 +83,7 @@
                         </button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 btn-modern">Log In</button>
+                <button type="submit" class="btn btn-primary w-100 py-2 btn-modern">Log In (Cloud Sync)</button>
             </form>
 
             <!-- Register Form -->
@@ -141,7 +109,7 @@
                         </button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-success w-100 py-2 btn-modern">Register & Generate Codes</button>
+                <button type="submit" class="btn btn-success w-100 py-2 btn-modern">Create Global Account</button>
             </form>
         </div>
     </div>
@@ -153,7 +121,7 @@
         <header class="navbar navbar-expand navbar-dark bg-primary sticky-top px-3 shadow">
             <span class="navbar-brand fw-bold" id="brand-name">BMS App</span>
             <div class="ms-auto d-flex align-items-center gap-2">
-                <!-- CLOUD SYNC BUTTONS REMOVED -->
+                <div id="cloud-status" class="badge bg-success"><i class="fa-solid fa-cloud me-1"></i> Connected</div>
                 <div class="dropdown text-white ms-2">
                     <i class="fa-solid fa-bell position-relative fs-5 cursor-pointer" data-bs-toggle="dropdown">
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="noti-count" style="font-size: 10px;">0</span>
@@ -200,12 +168,6 @@
                     </div>
                 </div>
 
-                <!-- INFO SECTION UPDATED (OFFLINE NOTICE) -->
-                <div class="card p-3 shadow-sm border-0 mb-3 border-start border-primary border-4">
-                    <h6 class="fw-bold text-primary mb-1"><i class="fa-solid fa-hdd me-2"></i>Local Storage Active</h6>
-                    <p class="text-muted small mb-0" style="font-size: 11px;">සියලුම දත්ත මෙම උපකරණයේ ආරක්ෂිතව ගබඩා වේ (Offline Storage).</p>
-                </div>
-
                 <div class="card p-3 shadow-sm border-0 mb-3">
                     <h6 class="fw-bold mb-2"><i class="fa-solid fa-chart-line text-primary me-2"></i>Recent Activity</h6>
                     <div class="table-responsive">
@@ -234,12 +196,7 @@
                     <div class="table-responsive">
                         <table class="table table-hover align-middle" style="font-size: 13px;">
                             <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Phone</th>
-                                    <th>Outstanding</th>
-                                    <th>Action</th>
-                                </tr>
+                                <tr><th>Name</th><th>Phone</th><th>Outstanding</th><th>Action</th></tr>
                             </thead>
                             <tbody id="table-customers"></tbody>
                         </table>
@@ -257,12 +214,7 @@
                     <div class="table-responsive">
                         <table class="table table-hover align-middle" style="font-size: 13px;">
                             <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Selling</th>
-                                    <th>Stock</th>
-                                    <th class="admin-only">Action</th>
-                                </tr>
+                                <tr><th>Item</th><th>Selling</th><th>Stock</th><th class="admin-only">Action</th></tr>
                             </thead>
                             <tbody id="table-items"></tbody>
                         </table>
@@ -280,13 +232,7 @@
                     <div class="table-responsive">
                         <table class="table table-hover align-middle" style="font-size: 13px;">
                             <thead>
-                                <tr>
-                                    <th>Order #</th>
-                                    <th>Customer</th>
-                                    <th>Total</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
+                                <tr><th>Order #</th><th>Customer</th><th>Total</th><th>Status</th><th>Action</th></tr>
                             </thead>
                             <tbody id="table-orders"></tbody>
                         </table>
@@ -304,12 +250,7 @@
                     <div class="table-responsive">
                         <table class="table table-hover align-middle" style="font-size: 13px;">
                             <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Username</th>
-                                    <th>Role</th>
-                                    <th>Action</th>
-                                </tr>
+                                <tr><th>Name</th><th>Username</th><th>Role</th><th>Action</th></tr>
                             </thead>
                             <tbody id="table-employees"></tbody>
                         </table>
@@ -334,33 +275,20 @@
                 <button class="btn btn-outline-danger w-100 mb-2" onclick="downloadSalesReport()"><i class="fa-solid fa-file-csv me-2"></i>Download Sales (CSV)</button>
                 <button class="btn btn-outline-success w-100" onclick="downloadInventoryReport()"><i class="fa-solid fa-file-csv me-2"></i>Download Inventory (CSV)</button>
             </div>
-
         </main>
 
         <!-- Bottom Navigation Bar -->
         <nav class="bottom-nav">
-            <button class="nav-item active" onclick="switchView('dashboard')">
-                <i class="fa-solid fa-chart-pie"></i><span>Home</span>
-            </button>
-            <button class="nav-item" onclick="switchView('customers')">
-                <i class="fa-solid fa-users"></i><span>Customers</span>
-            </button>
-            <button class="nav-item" onclick="switchView('items')">
-                <i class="fa-solid fa-boxes-stacked"></i><span>Items</span>
-            </button>
-            <button class="nav-item" onclick="switchView('orders')">
-                <i class="fa-solid fa-file-invoice"></i><span>Orders</span>
-            </button>
-            <button class="nav-item admin-only" onclick="switchView('employees')">
-                <i class="fa-solid fa-user-gear"></i><span>Staff</span>
-            </button>
-            <button class="nav-item admin-only" onclick="switchView('reports')">
-                <i class="fa-solid fa-file-waveform"></i><span>Reports</span>
-            </button>
+            <button class="nav-item active" onclick="switchView('dashboard')"><i class="fa-solid fa-chart-pie"></i><span>Home</span></button>
+            <button class="nav-item" onclick="switchView('customers')"><i class="fa-solid fa-users"></i><span>Customers</span></button>
+            <button class="nav-item" onclick="switchView('items')"><i class="fa-solid fa-boxes-stacked"></i><span>Items</span></button>
+            <button class="nav-item" onclick="switchView('orders')"><i class="fa-solid fa-file-invoice"></i><span>Orders</span></button>
+            <button class="nav-item admin-only" onclick="switchView('employees')"><i class="fa-solid fa-user-gear"></i><span>Staff</span></button>
+            <button class="nav-item admin-only" onclick="switchView('reports')"><i class="fa-solid fa-file-waveform"></i><span>Reports</span></button>
         </nav>
     </div>
 
-    <!-- Modals (Popups) -->
+    <!-- Modals -->
     <div class="modal fade" id="modal-customer" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="form-customer" class="modal-content">
@@ -436,30 +364,31 @@
         </div>
     </div>
 
-    <!-- Bootstrap & App Script Logic -->
+    <!-- Bootstrap & Supabase Logic -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // LocalStorage Setup (CLOUD_API_URL and Sync functions completely removed)
-        if (!localStorage.getItem('bms_companies')) localStorage.setItem('bms_companies', JSON.stringify([]));
-        if (!localStorage.getItem('bms_users')) localStorage.setItem('bms_users', JSON.stringify([]));
-        if (!localStorage.getItem('bms_customers')) localStorage.setItem('bms_customers', JSON.stringify([]));
-        if (!localStorage.getItem('bms_items')) localStorage.setItem('bms_items', JSON.stringify([]));
-        if (!localStorage.getItem('bms_orders')) localStorage.setItem('bms_orders', JSON.stringify([]));
-        if (!localStorage.getItem('bms_notifications')) localStorage.setItem('bms_notifications', JSON.stringify([]));
+        // === ⚠️ CONFIGURATION ⚠️ ===
+        const SUPABASE_URL = "https://chrnonutnjhynzrmqkbb.supabase.co"; 
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNocm5vbnV0bmpoeW56cm1xa2JiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MjUyNjUsImV4cCI6MjEwMDAwMTI2NX0.k5VAt9wSj5V3nvitnG7kd4YiT0PX6EhxWvDhUNsn6VU"; 
+        
+        const supabase = Blessing = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let activeUser = null; 
+        // Global Application State (Will hold company specific data fetched from Supabase)
+        let activeUser = null;
+        let dbData = {
+            users: [],
+            customers: [],
+            items: [],
+            orders: [],
+            notifications: []
+        };
 
-        // ================= AUTH/NAV LOGIC =================
+        // UI Helpers
         function togglePasswordVisibility(id, btn) {
             const input = document.getElementById(id);
             const icon = btn.querySelector('i');
-            if (input.type === "password") {
-                input.type = "text";
-                icon.className = "fa-solid fa-eye-slash";
-            } else {
-                input.type = "password";
-                icon.className = "fa-solid fa-eye";
-            }
+            input.type = input.type === "password" ? "text" : "password";
+            icon.className = input.type === "password" ? "fa-solid fa-eye" : "fa-solid fa-eye-slash";
         }
 
         document.getElementById('btn-login-tab')?.addEventListener('click', () => {
@@ -476,396 +405,350 @@
             document.getElementById('register-form').classList.remove('d-none');
         });
 
-        document.getElementById('register-form')?.addEventListener('submit', (e) => {
+        // Cloud Core Sync Functions
+        async function saveToCloud() {
+            if (!activeUser) return;
+            document.getElementById('cloud-status').className = "badge bg-warning";
+            document.getElementById('cloud-status').innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...`;
+            
+            const { error } = await supabase
+                .from('bms_cloud_data')
+                .upsert({ company_code: activeUser.companyCode, db_data: dbData });
+
+            if (error) {
+                console.error("Cloud save error:", error);
+                document.getElementById('cloud-status').className = "badge bg-danger";
+                document.getElementById('cloud-status').innerHTML = `<i class="fa-solid fa-cloud-arrow-up me-1"></i> Sync Failed`;
+            } else {
+                document.getElementById('cloud-status').className = "badge bg-success";
+                document.getElementById('cloud-status').innerHTML = `<i class="fa-solid fa-cloud me-1"></i> Connected`;
+            }
+        }
+
+        // Authentication & Account Creation Logic
+        document.getElementById('register-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const companyName = document.getElementById('reg-company-name').value.trim();
             const adminName = document.getElementById('reg-admin-name').value.trim();
             const username = document.getElementById('reg-username').value.trim().toLowerCase();
             const password = document.getElementById('reg-password').value;
 
-            let users = JSON.parse(localStorage.getItem('bms_users'));
-            if (users.find(u => u.username === username)) { alert("Username already exists!"); return; }
-
             const companyCode = 'CO-' + Math.floor(1000 + Math.random() * 9000);
-            const userCode = 'USR-' + Math.floor(10000 + Math.random() * 90000);
+            
+            // Check if company code or user exists on Supabase globally
+            const { data, error } = await supabase.from('bms_cloud_data').select('company_code').eq('company_code', companyCode).single();
+            if (data) { alert("Registration clash. Please try again."); return; }
 
-            const companies = JSON.parse(localStorage.getItem('bms_companies'));
-            companies.push({ companyCode, companyName });
-            localStorage.setItem('bms_companies', JSON.stringify(companies));
+            const initialData = {
+                users: [{ userCode: 'USR-ADMIN', companyCode, name: adminName, username, password: btoa(password), role: 'Admin' }],
+                customers: [], items: [], orders: [], notifications: []
+            };
 
-            users.push({ userCode, companyCode, name: adminName, username, password: btoa(password), role: 'Admin' });
-            localStorage.setItem('bms_users', JSON.stringify(users));
+            const { error: insertError } = await supabase.from('bms_cloud_data').insert({ company_code: companyCode, db_data: initialData });
+            
+            if (insertError) { alert("Cloud connection failed."); return; }
 
-            alert(`Admin Registered!\nCompany Code: ${companyCode}\nUse this Code to login!`);
+            alert(`Global Company Account Created!\nCompany Code: ${companyCode}\nShare this code with your employees!`);
             document.getElementById('btn-login-tab').click();
             document.getElementById('login-company-code').value = companyCode;
         });
 
-        document.getElementById('login-form')?.addEventListener('submit', (e) => {
+        document.getElementById('login-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const companyCode = document.getElementById('login-company-code').value.trim();
             const role = document.getElementById('login-role').value;
             const username = document.getElementById('login-username').value.trim().toLowerCase();
             const password = document.getElementById('login-password').value;
-
             const hashedPassword = btoa(password);
-            const users = JSON.parse(localStorage.getItem('bms_users'));
-            const user = users.find(u => u.username === username && u.companyCode === companyCode && u.role === role && u.password === hashedPassword);
+
+            // Fetch data from Supabase for this specific company
+            const { data, error } = await supabase.from('bms_cloud_data').select('db_data').eq('company_code', companyCode).single();
+            
+            if (error || !data) { alert("Invalid Company Code!"); return; }
+
+            const companyDB = data.db_data;
+            const user = companyDB.users.find(u => u.username === username && u.role === role && u.password === hashedPassword);
 
             if (user) {
                 activeUser = user;
+                dbData = companyDB;
+                
                 document.getElementById('auth-section').classList.add('d-none');
                 document.getElementById('app-section').classList.remove('d-none');
                 document.getElementById('brand-name').textContent = "BMS - " + companyCode;
                 document.getElementById('user-display').textContent = `${user.name} (${user.role})`;
                 
                 applyRoleRestrictions();
-                loadAllData();
+                renderAllData();
                 switchView('dashboard');
+                
+                // Real-time synchronization loop (Check updates every 10 seconds)
+                setInterval(realtimeSync, 10000);
             } else {
-                alert("Login failed!");
+                alert("Incorrect Username or Password!");
             }
         });
 
-        document.getElementById('btn-logout')?.addEventListener('click', () => {
-            activeUser = null;
-            document.getElementById('auth-section').classList.remove('d-none');
-            document.getElementById('app-section').classList.add('d-none');
-        });
+        async function realtimeSync() {
+            if (!activeUser) return;
+            const { data } = await supabase.from('bms_cloud_data').select('db_data').eq('company_code', activeUser.companyCode).single();
+            if (data) {
+                dbData = data.db_data;
+                renderAllData();
+            }
+        }
+
+        document.getElementById('btn-logout')?.addEventListener('click', () => { location.reload(); });
 
         function applyRoleRestrictions() {
-            const adminElements = document.querySelectorAll('.admin-only');
-            if (activeUser.role !== 'Admin') {
-                adminElements.forEach(el => el.classList.add('d-none'));
-            } else {
-                adminElements.forEach(el => el.classList.remove('d-none'));
-            }
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if (activeUser.role !== 'Admin') el.classList.add('d-none');
+                else el.classList.remove('d-none');
+            });
         }
 
         function switchView(viewName) {
             document.querySelectorAll('.app-view').forEach(view => view.classList.add('d-none'));
             document.getElementById('view-' + viewName).classList.remove('d-none');
-            
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
             const activeBtn = Array.from(document.querySelectorAll('.nav-item')).find(btn => btn.getAttribute('onclick').includes(viewName));
             if(activeBtn) activeBtn.classList.add('active');
         }
 
-        function loadAllData() {
-            loadCustomers();
-            loadItems();
-            loadOrders();
-            loadEmployees();
+        function renderAllData() {
+            renderCustomers();
+            renderItems();
+            renderOrders();
+            renderEmployees();
             renderNotifications();
             updateDashboardMetrics();
         }
 
         // ================= BUSINESS LOGIC =================
         function updateDashboardMetrics() {
-            const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
-            const items = JSON.parse(localStorage.getItem('bms_items')).filter(i => i.companyCode === activeUser.companyCode);
-            const customers = JSON.parse(localStorage.getItem('bms_customers')).filter(c => c.companyCode === activeUser.companyCode);
-
-            const approvedOrders = orders.filter(o => o.status === 'Approved');
+            const approvedOrders = dbData.orders.filter(o => o.status === 'Approved');
             const totalSales = approvedOrders.reduce((sum, o) => sum + o.total, 0);
 
             let netProfit = 0;
             approvedOrders.forEach(ord => {
-                const matchingItem = items.find(i => i.code === ord.itemCode);
-                if (matchingItem) {
-                    netProfit += ((ord.unitPrice - matchingItem.cost) * ord.qty);
-                }
+                const matchingItem = dbData.items.find(i => i.code === ord.itemCode);
+                if (matchingItem) netProfit += ((ord.unitPrice - matchingItem.cost) * ord.qty);
             });
 
-            const outstanding = customers.reduce((sum, c) => sum + Number(c.balance), 0);
+            const outstanding = dbData.customers.reduce((sum, c) => sum + Number(c.balance), 0);
 
             document.getElementById('dash-sales').textContent = 'Rs. ' + totalSales.toFixed(2);
             document.getElementById('dash-profit').textContent = 'Rs. ' + netProfit.toFixed(2);
-            document.getElementById('dash-orders').textContent = orders.length;
+            document.getElementById('dash-orders').textContent = dbData.orders.length;
             document.getElementById('dash-outstanding').textContent = 'Rs. ' + outstanding.toFixed(2);
 
             const tblDash = document.getElementById('dash-sales-table');
             tblDash.innerHTML = '';
-            orders.slice(-5).reverse().forEach(o => {
+            dbData.orders.slice(-5).reverse().forEach(o => {
                 tblDash.innerHTML += `<tr><td>${o.orderNo}</td><td>Rs. ${o.total.toFixed(2)}</td><td><span class="badge bg-${o.status === 'Approved' ? 'success' : o.status === 'Pending' ? 'warning' : 'danger'}">${o.status}</span></td></tr>`;
             });
 
             const alertsDiv = document.getElementById('dash-alerts');
             alertsDiv.innerHTML = '';
-            items.forEach(i => {
-                if (i.qty <= i.lowStock) {
-                    alertsDiv.innerHTML += `<div>⚠️ Low Stock: <b>${i.name}</b> (${i.qty} left)</div>`;
-                }
+            dbData.items.forEach(i => {
+                if (i.qty <= i.lowStock) alertsDiv.innerHTML += `<div>⚠️ Low Stock: <b>${i.name}</b> (${i.qty} left)</div>`;
             });
 
             if (activeUser.role === 'Admin') {
-                document.getElementById('rep-inv-cost').textContent = 'Rs. ' + items.reduce((sum, i) => sum + (i.cost * i.qty), 0).toFixed(2);
-                document.getElementById('rep-inv-sell').textContent = 'Rs. ' + items.reduce((sum, i) => sum + (i.sell * i.qty), 0).toFixed(2);
+                document.getElementById('rep-inv-cost').textContent = 'Rs. ' + dbData.items.reduce((sum, i) => sum + (i.cost * i.qty), 0).toFixed(2);
+                document.getElementById('rep-inv-sell').textContent = 'Rs. ' + dbData.items.reduce((sum, i) => sum + (i.sell * i.qty), 0).toFixed(2);
                 document.getElementById('rep-total-orders').textContent = approvedOrders.length;
                 document.getElementById('rep-outstanding').textContent = 'Rs. ' + outstanding.toFixed(2);
             }
         }
 
-        // Customers
-        function loadCustomers() {
-            const customers = JSON.parse(localStorage.getItem('bms_customers')).filter(c => c.companyCode === activeUser.companyCode);
+        // Customers Module
+        function renderCustomers() {
             const tableBody = document.getElementById('table-customers');
             const orderCustomerSelect = document.getElementById('order-customer');
             tableBody.innerHTML = '';
             orderCustomerSelect.innerHTML = '<option value="">-- Customer --</option>';
 
-            customers.forEach(c => {
+            dbData.customers.forEach(c => {
                 tableBody.innerHTML += `<tr><td><b>${c.name}</b></td><td>${c.phone}</td><td class="text-danger fw-bold">Rs. ${Number(c.balance).toFixed(2)}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer('${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
                 orderCustomerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
             });
         }
 
-        document.getElementById('form-customer')?.addEventListener('submit', (e) => {
+        document.getElementById('form-customer')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = 'CST-' + Date.now();
-            const name = document.getElementById('cust-name').value;
-            const phone = document.getElementById('cust-phone').value;
-            const address = document.getElementById('cust-address').value;
-            const balance = document.getElementById('cust-balance').value || 0;
-
-            const customers = JSON.parse(localStorage.getItem('bms_customers'));
-            customers.push({ id, companyCode: activeUser.companyCode, name, phone, address, balance });
-            localStorage.setItem('bms_customers', JSON.stringify(customers));
-
+            dbData.customers.push({
+                id: 'CST-' + Date.now(), companyCode: activeUser.companyCode,
+                name: document.getElementById('cust-name').value,
+                phone: document.getElementById('cust-phone').value,
+                address: document.getElementById('cust-address').value,
+                balance: document.getElementById('cust-balance').value || 0
+            });
             bootstrap.Modal.getInstance(document.getElementById('modal-customer')).hide();
             document.getElementById('form-customer').reset();
-            loadCustomers();
-            updateDashboardMetrics();
+            await saveToCloud(); renderCustomers(); updateDashboardMetrics();
         });
 
-        function deleteCustomer(id) {
+        async function deleteCustomer(id) {
             if (confirm("Remove Customer?")) {
-                let customers = JSON.parse(localStorage.getItem('bms_customers'));
-                customers = customers.filter(c => c.id !== id);
-                localStorage.setItem('bms_customers', JSON.stringify(customers));
-                loadCustomers();
-                updateDashboardMetrics();
+                dbData.customers = dbData.customers.filter(c => c.id !== id);
+                await saveToCloud(); renderCustomers(); updateDashboardMetrics();
             }
         }
 
-        // Items Inventory
-        function loadItems() {
-            const items = JSON.parse(localStorage.getItem('bms_items')).filter(i => i.companyCode === activeUser.companyCode);
+        // Items Inventory Module
+        function renderItems() {
             const tableBody = document.getElementById('table-items');
             const orderItemSelect = document.getElementById('order-item');
             tableBody.innerHTML = '';
             orderItemSelect.innerHTML = '<option value="">-- Item --</option>';
 
-            items.forEach(i => {
+            dbData.items.forEach(i => {
                 const isLow = i.qty <= i.lowStock;
                 tableBody.innerHTML += `<tr><td><b>${i.name}</b><br><small class="text-muted">${i.code}</small></td><td>Rs. ${Number(i.sell).toFixed(2)}</td><td><span class="badge bg-${isLow ? 'danger' : 'success'}">${i.qty}</span></td><td class="admin-only"><button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${i.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
                 orderItemSelect.innerHTML += `<option value="${i.code}">${i.name} (Rs. ${i.sell})</option>`;
             });
         }
 
-        document.getElementById('form-item')?.addEventListener('submit', (e) => {
+        document.getElementById('form-item')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = 'ITM-' + Date.now();
-            const name = document.getElementById('item-name').value;
-            const cost = parseFloat(document.getElementById('item-cost').value);
-            const sell = parseFloat(document.getElementById('item-sell').value);
-            const qty = parseInt(document.getElementById('item-qty').value);
-            const lowStock = parseInt(document.getElementById('item-low').value);
-            const code = 'SKU-' + Math.floor(1000 + Math.random() * 9000);
-
-            const items = JSON.parse(localStorage.getItem('bms_items'));
-            items.push({ id, code, companyCode: activeUser.companyCode, name, cost, sell, qty, lowStock });
-            localStorage.setItem('bms_items', JSON.stringify(items));
-
+            dbData.items.push({
+                id: 'ITM-' + Date.now(), code: 'SKU-' + Math.floor(1000 + Math.random() * 9000), companyCode: activeUser.companyCode,
+                name: document.getElementById('item-name').value,
+                cost: parseFloat(document.getElementById('item-cost').value),
+                sell: parseFloat(document.getElementById('item-sell').value),
+                qty: parseInt(document.getElementById('item-qty').value),
+                lowStock: parseInt(document.getElementById('item-low').value)
+            });
             bootstrap.Modal.getInstance(document.getElementById('modal-item')).hide();
             document.getElementById('form-item').reset();
-            loadItems();
-            updateDashboardMetrics();
+            await saveToCloud(); renderItems(); updateDashboardMetrics();
         });
 
-        function deleteItem(id) {
+        async function deleteItem(id) {
             if (confirm("Delete Item?")) {
-                let items = JSON.parse(localStorage.getItem('bms_items'));
-                items = items.filter(i => i.id !== id);
-                localStorage.setItem('bms_items', JSON.stringify(items));
-                loadItems();
-                updateDashboardMetrics();
+                dbData.items = dbData.items.filter(i => i.id !== id);
+                await saveToCloud(); renderItems(); updateDashboardMetrics();
             }
         }
 
-        // Orders
-        function loadOrders() {
-            const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
+        // Orders Module
+        function renderOrders() {
             const tableBody = document.getElementById('table-orders');
             tableBody.innerHTML = '';
-
-            orders.forEach(o => {
-                let actions = '';
-                if (o.status === 'Pending') {
-                    if (activeUser.role === 'Admin') {
-                        actions = `<button class="btn btn-xs btn-success py-0 px-1" onclick="approveOrder('${o.id}')">Approve</button>`;
-                    } else {
-                        actions = `<span class="text-muted small">Pending</span>`;
-                    }
-                } else {
-                    actions = `<span class="text-muted small">Done</span>`;
-                }
-
+            dbData.orders.forEach(o => {
+                let actions = o.status === 'Pending' ? (activeUser.role === 'Admin' ? `<button class="btn btn-xs btn-success py-0 px-1" onclick="approveOrder('${o.id}')">Approve</button>` : `<span class="text-muted small">Pending</span>`) : `<span class="text-muted small">Done</span>`;
                 tableBody.innerHTML += `<tr><td><b>${o.orderNo}</b></td><td>${o.custName}</td><td>Rs. ${o.total.toFixed(0)}</td><td><span class="badge bg-${o.status === 'Approved' ? 'success' : o.status === 'Pending' ? 'warning' : 'danger'}">${o.status}</span></td><td>${actions}</td></tr>`;
             });
         }
 
-        document.getElementById('form-order')?.addEventListener('submit', (e) => {
+        document.getElementById('form-order')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const custId = document.getElementById('order-customer').value;
             const itemCode = document.getElementById('order-item').value;
             const qty = parseInt(document.getElementById('order-qty').value);
             const payment = document.getElementById('order-payment').value;
 
-            const customers = JSON.parse(localStorage.getItem('bms_customers'));
-            const items = JSON.parse(localStorage.getItem('bms_items'));
-
-            const customer = customers.find(c => c.id === custId);
-            const item = items.find(i => i.code === itemCode);
+            const customer = dbData.customers.find(c => c.id === custId);
+            const item = dbData.items.find(i => i.code === itemCode);
 
             if (item.qty < qty) { alert("Insufficient Stock!"); return; }
 
-            const orderNo = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
-            const orders = JSON.parse(localStorage.getItem('bms_orders'));
-            orders.push({ 
-                id: 'ORD-' + Date.now(), 
-                orderNo, 
-                companyCode: activeUser.companyCode, 
-                custId, 
-                custName: customer.name, 
-                itemCode, 
-                itemName: item.name,
-                qty, 
-                unitPrice: item.sell, 
-                total: (item.sell * qty), 
-                empName: activeUser.name, 
-                payment, 
-                status: 'Pending',
-                date: new Date().toLocaleDateString()
+            dbData.orders.push({
+                id: 'ORD-' + Date.now(), orderNo: 'ORD-' + Math.floor(100000 + Math.random() * 900000), companyCode: activeUser.companyCode,
+                custId, custName: customer.name, itemCode, itemName: item.name, qty, unitPrice: item.sell, total: (item.sell * qty),
+                empName: activeUser.name, payment, status: 'Pending', date: new Date().toLocaleDateString()
             });
-            localStorage.setItem('bms_orders', JSON.stringify(orders));
-
             bootstrap.Modal.getInstance(document.getElementById('modal-order')).hide();
             document.getElementById('form-order').reset();
-            pushNotification("New order placed! Pending review.", "info");
-            loadOrders();
-            updateDashboardMetrics();
+            
+            dbData.notifications.push({ id: Date.now(), companyCode: activeUser.companyCode, message: "New order pending review.", type: "info" });
+            await saveToCloud(); renderOrders(); updateDashboardMetrics();
         });
 
-        function approveOrder(orderId) {
-            const orders = JSON.parse(localStorage.getItem('bms_orders'));
-            const order = orders.find(o => o.id === orderId);
-            const items = JSON.parse(localStorage.getItem('bms_items'));
-            const item = items.find(i => i.code === order.itemCode);
+        async function approveOrder(orderId) {
+            const order = dbData.orders.find(o => o.id === orderId);
+            const item = dbData.items.find(i => i.code === order.itemCode);
 
             if (item && item.qty >= order.qty) {
                 item.qty -= order.qty;
                 order.status = 'Approved';
 
                 if (order.payment === 'Credit') {
-                    const customers = JSON.parse(localStorage.getItem('bms_customers'));
-                    const customer = customers.find(c => c.id === order.custId);
+                    const customer = dbData.customers.find(c => c.id === order.custId);
                     if (customer) customer.balance = Number(customer.balance) + order.total;
-                    localStorage.setItem('bms_customers', JSON.stringify(customers));
                 }
-
-                localStorage.setItem('bms_items', JSON.stringify(items));
-                localStorage.setItem('bms_orders', JSON.stringify(orders));
-                pushNotification(`Order ${order.orderNo} Approved!`, "success");
-                loadAllData();
+                dbData.notifications.push({ id: Date.now(), companyCode: activeUser.companyCode, message: `Order ${order.orderNo} Approved!`, type: "success" });
+                await saveToCloud(); renderAllData();
             } else {
                 alert("Stock insufficient!");
             }
         }
 
-        // Employees
-        function loadEmployees() {
+        // Staff / Employees Module
+        function renderEmployees() {
             if (activeUser.role !== 'Admin') return;
-            const users = JSON.parse(localStorage.getItem('bms_users')).filter(u => u.companyCode === activeUser.companyCode);
             const tableBody = document.getElementById('table-employees');
             tableBody.innerHTML = '';
-
-            users.forEach(u => {
+            dbData.users.forEach(u => {
                 tableBody.innerHTML += `<tr><td><b>${u.name}</b></td><td>${u.username}</td><td><span class="badge bg-dark">${u.role}</span></td><td>${u.role !== 'Admin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee('${u.userCode}')"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`;
             });
         }
 
-        document.getElementById('form-employee')?.addEventListener('submit', (e) => {
+        document.getElementById('form-employee')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('emp-name').value;
             const username = document.getElementById('emp-username').value.trim().toLowerCase();
-            const password = document.getElementById('emp-password').value;
+            if (dbData.users.find(u => u.username === username)) { alert("Username taken!"); return; }
 
-            const users = JSON.parse(localStorage.getItem('bms_users'));
-            if (users.find(u => u.username === username)) { alert("Username taken!"); return; }
-
-            users.push({ userCode: 'EMP-' + Math.floor(10000 + Math.random() * 90000), companyCode: activeUser.companyCode, name, username, password: btoa(password), role: 'Employee' });
-            localStorage.setItem('bms_users', JSON.stringify(users));
+            dbData.users.push({
+                userCode: 'EMP-' + Math.floor(10000 + Math.random() * 90000), companyCode: activeUser.companyCode,
+                name: document.getElementById('emp-name').value, username,
+                password: btoa(document.getElementById('emp-password').value), role: 'Employee'
+            });
             bootstrap.Modal.getInstance(document.getElementById('modal-employee')).hide();
             document.getElementById('form-employee').reset();
-            loadEmployees();
+            await saveToCloud(); renderEmployees();
         });
 
-        function deleteEmployee(code) {
+        async function deleteEmployee(code) {
             if (confirm("Delete Account?")) {
-                let users = JSON.parse(localStorage.getItem('bms_users'));
-                users = users.filter(u => u.userCode !== code);
-                localStorage.setItem('bms_users', JSON.stringify(users));
-                loadEmployees();
+                dbData.users = dbData.users.filter(u => u.userCode !== code);
+                await saveToCloud(); renderEmployees();
             }
         }
 
-        // Alerts / Notifications
-        function pushNotification(message, type) {
-            const notis = JSON.parse(localStorage.getItem('bms_notifications'));
-            notis.push({ id: Date.now(), companyCode: activeUser.companyCode, message, type, time: new Date().toLocaleTimeString() });
-            localStorage.setItem('bms_notifications', JSON.stringify(notis));
-            renderNotifications();
-        }
-
         function renderNotifications() {
-            const notis = JSON.parse(localStorage.getItem('bms_notifications')).filter(n => n.companyCode === activeUser.companyCode);
-            document.getElementById('noti-count').textContent = notis.length;
+            document.getElementById('noti-count').textContent = dbData.notifications.length;
             const list = document.getElementById('noti-list');
             list.innerHTML = '<li><h6 class="dropdown-header">Notifications</h6></li><li><hr class="dropdown-divider"></li>';
-            if (notis.length === 0) list.innerHTML += `<li class="p-2 text-center text-muted small">No Alerts!</li>`;
+            if (dbData.notifications.length === 0) list.innerHTML += `<li class="p-2 text-center text-muted small">No Alerts!</li>`;
             else {
-                notis.slice(-5).reverse().forEach(n => {
+                dbData.notifications.slice(-5).reverse().forEach(n => {
                     list.innerHTML += `<li class="p-2 border-bottom"><span class="text-${n.type} small d-block"><b>${n.message}</b></span></li>`;
                 });
             }
         }
 
-        // CSV Reports
+        // Reports
         function downloadSalesReport() {
-            const orders = JSON.parse(localStorage.getItem('bms_orders')).filter(o => o.companyCode === activeUser.companyCode);
-            if(orders.length === 0) { alert("No data!"); return; }
+            if(dbData.orders.length === 0) { alert("No data!"); return; }
             let csv = "data:text/csv;charset=utf-8,Order No,Customer,Total,Status\n";
-            orders.forEach(o => csv += `${o.orderNo},${o.custName},${o.total},${o.status}\n`);
+            dbData.orders.forEach(o => csv += `${o.orderNo},${o.custName},${o.total},${o.status}\n`);
             triggerDownload(csv, "Sales_Report.csv");
         }
 
         function downloadInventoryReport() {
-            const items = JSON.parse(localStorage.getItem('bms_items')).filter(i => i.companyCode === activeUser.companyCode);
-            if(items.length === 0) { alert("No data!"); return; }
+            if(dbData.items.length === 0) { alert("No data!"); return; }
             let csv = "data:text/csv;charset=utf-8,Code,Name,Cost,Selling,Qty\n";
-            items.forEach(i => csv += `${i.code},${i.name},${i.cost},${i.sell},${i.qty}\n`);
+            dbData.items.forEach(i => csv += `${i.code},${i.name},${i.cost},${i.sell},${i.qty}\n`);
             triggerDownload(csv, "Inventory_Report.csv");
         }
 
         function triggerDownload(content, fileName) {
-            const encodedUri = encodeURI(content);
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
+            link.setAttribute("href", encodeURI(content));
             link.setAttribute("download", fileName);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
     </script>
 </body>
